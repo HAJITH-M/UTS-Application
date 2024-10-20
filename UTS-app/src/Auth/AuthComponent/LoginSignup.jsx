@@ -17,6 +17,7 @@ const LoginSignup = () => {
     return <Navigate to="/home" />;
   }
 
+
   const toggleForm = () => {
     setIsLogin(!isLogin);
     setName('');
