@@ -1,5 +1,6 @@
   import React, { useState } from 'react';
-  import { FaTicketAlt, FaQrcode, FaBolt, FaSubway, FaCalendarAlt } from 'react-icons/fa';
+
+  import { FaTicketAlt, FaQrcode, FaBolt, FaSubway, FaCalendarAlt, FaUsers } from 'react-icons/fa';
 
   const BookingNav = () => {
     const [activeTab, setActiveTab] = useState(null);
@@ -10,6 +11,7 @@
       { id: 'QuickBooking', icon: FaBolt, label: 'Quick Booking' },
       { id: 'PlatformTicket', icon: FaSubway, label: 'Platform Ticket' },
       { id: 'SeasonTicket', icon: FaCalendarAlt, label: 'Season Ticket' },
+      { id: 'CrowdInfo', icon: FaUsers, label: 'Crowd Info' },
     ]; 
 
     return (

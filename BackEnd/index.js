@@ -12,7 +12,7 @@ const PORT = 5000;
 // Middleware 
 app.use(bodyParser.json());
 app.use(cors({
-    origin: 'http://localhost:5173', // Update to your frontend's URL
+    origin: '*', // Update to your frontend's URL
 }));
 
 // Replace this with your actual JWT secret
