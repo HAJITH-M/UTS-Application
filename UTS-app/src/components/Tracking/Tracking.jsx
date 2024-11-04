@@ -1,34 +1,35 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Updated import
 import { FaTicketAlt, FaHistory, FaEye, FaWallet, FaUser, FaExchangeAlt } from 'react-icons/fa';
 
 const Tracking = () => {
   const [activeButton, setActiveButton] = useState(null);
   const [bookings, setBookings] = useState([]);
-  const [userEmail, setUserEmail] = useState(null); // State for user email
+  const [userEmail, setUserEmail] = useState(null);
+  const navigate = useNavigate(); // Use useNavigate
 
   useEffect(() => {
-    // Retrieve email from local storage on component mount
-    const email = localStorage.getItem('userEmail'); // Adjust the key as necessary
+    const email = localStorage.getItem('userEmail');
     setUserEmail(email);
   }, []);
 
   const fetchBookingHistory = async () => {
     if (!userEmail) {
       console.error('No user email found');
-      return; // Exit if user email is not set
+      return;
     }
 
     const url = `http://localhost:5000/booking-history?email=${encodeURIComponent(userEmail)}`;
-    console.log('Fetching booking history from:', url); // Log the URL
-
+    
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        const errorData = await response.json(); // Capture error response
+        const errorData = await response.json();
         throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error}`);
       }
       const data = await response.json();
       setBookings(data);
+      navigate('/booking-history', { state: { bookings: data } }); // Pass bookings as state
     } catch (error) {
       console.error('Error fetching booking history:', error);
     }
@@ -52,24 +53,6 @@ const Tracking = () => {
           <Button icon={<FaUser />} text="Profile" isActive={activeButton === 'Profile'} onClick={() => handleButtonClick('Profile')} />
           <Button icon={<FaExchangeAlt />} text="Transactions" isActive={activeButton === 'Transactions'} onClick={() => handleButtonClick('Transactions')} />
         </div>
-
-        {activeButton === 'Booking History' && (
-          <div className="mt-4">
-            <h2 className="text-lg font-semibold">Your Bookings:</h2>
-            <ul>
-              {bookings.map((booking) => (
-                <li key={booking.id} className="mb-2 border p-2 rounded">
-                  <p><strong>Departure:</strong> {booking.departureTrainNumber}</p>
-                  <p><strong>Arrival:</strong> {booking.arrivalTrainNumber}</p>
-                  <p><strong>Fare:</strong> ${booking.totalFare}</p>
-                  <p><strong>Email:</strong> {booking.email}</p>
-                  <p><strong>Created At:</strong> {new Date(booking.createdAt).toLocaleString()}</p>
-                </li>
-              ))}
-              {bookings.length === 0 && <p>No bookings found.</p>}
-            </ul>
-          </div>
-        )}
       </div>
     </div>
   );
