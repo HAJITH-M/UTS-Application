@@ -9,6 +9,7 @@ import LoginSignup from './Auth/AuthComponent/LoginSignup'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import ProtectedRoute from './Auth/ProtectedRoute'
 import HomePage from './Pages/HomePage'
+import FareDisplay from './components/FareDisplay/FareDisplay'
 
 const App = () => {
   return (
@@ -26,6 +27,8 @@ const App = () => {
         <Routes>
           <Route path='/' element={<LoginSignup/>}/>
           <Route path='/home' element={<ProtectedRoute><HomePage/></ProtectedRoute>}/>
+          <Route path='/fare-display' element={<FareDisplay />} />
+
           
         </Routes>
         <Footer/>

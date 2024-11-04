@@ -18,7 +18,7 @@ app.use(cors({
 // Replace this with your actual JWT secret
 const JWT_SECRET = 'your_jwt_secret';
 
-// Test database connection on startup
+// Test database connection on startup 
 (async () => {
     try {
         await prisma.$connect();
@@ -47,8 +47,6 @@ app.post('/signup', async (req, res) => {
 
 // Login Route
 app.post('/login', async (req, res) => {
-    console.log("Received login request:", req.body); // Log the incoming request
-
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -57,7 +55,6 @@ app.post('/login', async (req, res) => {
 
     try {
         const user = await prisma.user.findUnique({ where: { email } });
-        console.log("User found:", user); // Log the user data
 
         if (!user) {
             return res.status(401).json({ error: 'Invalid credentials' });
@@ -71,10 +68,131 @@ app.post('/login', async (req, res) => {
         const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '1h' });
         res.json({ token });
     } catch (error) {
-        console.error('Error during login:', error); // Log any errors
+        console.error('Error during login:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });
+
+// Route to fetch trains with their station names
+app.get('/trains', async (req, res) => {
+  try {
+    const trains = await prisma.train.findMany({
+      include: {
+        station: true, // Include station data
+      },
+    });
+    res.json(trains);
+  } catch (error) {
+    console.error('Error fetching trains:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
+// Route to fetch stations
+app.get('/stations', async (req, res) => {
+  try {
+    const trains = await prisma.train.findMany({
+      include: {
+        station: true, // Include station data
+      },
+    });
+    res.json(trains);
+  } catch (error) {
+    console.error('Error fetching trains:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Route to fetch stations
+app.get('/stations', async (req, res) => {
+  try {
+    const stations = await prisma.station.findMany(); // Fetching stations directly
+    res.json(stations);
+  } catch (error) {
+    console.error('Error fetching stations:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+// Route to fetch next trains based on departure and arrival stations
+app.get('/next-trains', async (req, res) => {
+  const { from, to } = req.query;
+
+  if (!from || !to) {
+    return res.status(400).json({ error: 'Both from and to train numbers are required.' });
+  }
+
+  try {
+    const nextTrains = await prisma.train.findMany({
+      where: {
+        trainNumber: from, // Assuming you want to fetch trains based on train number
+        // Adjust if needed to check for departure or arrival based on your data structure
+      },
+      select: {
+        trainNumber: true,
+        date: true,
+        arrivalTime: true,
+        station: true,
+        coachGroup1: true,
+        coachGroup2: true,  
+        coachGroup3: true,
+        coachGroup4: true,
+      },
+    });
+
+    if (nextTrains.length === 0) {
+      return res.status(404).json({ message: 'No trains found for the given criteria.' });
+    }
+
+    res.json(nextTrains);
+  } catch (error) {
+    console.error('Error fetching next trains:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  } 
+});
+
+
+
+// Add this fare route in your index.js
+app.get('/fare', async (req, res) => {
+  const { fromTrainNumber, toTrainNumber, fromStationId, toStationId } = req.query;
+
+  if (!fromTrainNumber || !toTrainNumber || !fromStationId || !toStationId) {
+      return res.status(400).json({ error: 'All train numbers and station IDs are required.' });
+  }
+
+  try {
+      // Fetch the departure train based on train number and station ID
+      const departureTrain = await prisma.train.findFirst({
+          where: {
+              trainNumber: fromTrainNumber,
+              stationId: Number(fromStationId),
+          },
+      });
+
+      // Fetch the arrival train based on train number and station ID
+      const arrivalTrain = await prisma.train.findFirst({
+          where: {
+              trainNumber: toTrainNumber,
+              stationId: Number(toStationId),
+          },
+      });
+
+      if (!departureTrain || !arrivalTrain) {
+          return res.status(404).json({ error: 'One or both trains not found.' });
+      }
+
+      // Calculate the total fare based on the final prices
+      const totalFare = departureTrain.finalPrice + arrivalTrain.finalPrice;
+
+      res.json({ totalFare });
+  } catch (error) {
+      console.error('Error fetching fare:', error);
+      res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
 
 // Start the server
 app.listen(PORT, () => {

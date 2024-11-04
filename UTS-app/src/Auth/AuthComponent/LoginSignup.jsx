@@ -54,7 +54,7 @@ const LoginSignup = () => {
       const data = await response.json();
       if (response.ok) {
         localStorage.setItem('userEmail', email); // Store email on successful login
-        return <Navigate to="/home" />; // Redirect to home
+        window.location.href = '/home'; // This will refresh the page and redirect
       } else {
         setError(data.error || 'An error occurred');
       }

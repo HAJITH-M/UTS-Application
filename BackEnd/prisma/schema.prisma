@@ -1,8 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://neondb_owner:CH0gfoxqIW8l@ep-silent-dust-a5soezec-pooler.us-east-2.aws.neon.tech/uts?sslmode=require"
-    // url      = env("DATABASE_URL")
-
+  url      = "postgresql://neondb_owner:2Wv0dGoFTUah@ep-calm-lab-a5v0tdi7.us-east-2.aws.neon.tech/uts?sslmode=require"
 }
 
 generator client {
@@ -14,4 +12,33 @@ model User {
   name     String
   email    String  @unique
   password String
+}
+
+model Train {
+  id             Int      @id @default(autoincrement())
+  trainNumber    String
+  date           DateTime
+  arrivalTime    DateTime
+  target         String
+  count          Int
+  stationId      Int
+  station        Station   @relation(fields: [stationId], references: [id])
+  coachGroup1    Int?
+  coachGroup2    Int?
+  coachGroup3    Int?
+  coachGroup4    Int?
+  
+  trainName      String
+  basePrice      Float
+  adjustedPrice  Float
+  gstTaxAmount   Float
+  finalPrice     Float
+
+}
+
+
+model Station {
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  trains   Train[] // This establishes a one-to-many relationship
 }
