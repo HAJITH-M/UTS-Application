@@ -1,19 +1,32 @@
 import React, { useState, useEffect } from 'react';
-
 import { FaMapMarkerAlt, FaExchangeAlt, FaTrain, FaTicketAlt, FaPrint, FaMobileAlt, FaBan, FaSearch, FaTimes, FaClock, FaMapPin, FaLayerGroup } from 'react-icons/fa';
 import { MdGpsFixed } from 'react-icons/md';
 import axios from 'axios';
+import { useNavigate } from 'react-router';
 
 const NormalBooking = () => {
   const [selectedOption, setSelectedOption] = useState(null);
-  const [departure, setDeparture] = useState({ trainNumber: '', stationName: '' });
-  const [arrival, setArrival] = useState({ trainNumber: '', stationName: '' });
+  const [departure, setDeparture] = useState({ trainNumber: '', stationName: '', stationId: '' });
+  const [arrival, setArrival] = useState({ trainNumber: '', stationName: '', stationId: '' });
   const [stations, setStations] = useState([]);
   const [nextTrains, setNextTrains] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate(); // Initialize navigate
+  const [fare, setFare] = useState(null); // New state for fare
+  const [userEmail, setUserEmail] = useState(''); // State for user email
 
+
+    // Fetch user email from local storage
+    useEffect(() => {
+      const email = localStorage.getItem('userEmail'); // Adjust this key based on how you stored the email
+      if (email) {
+        setUserEmail(email);
+      }
+    }, []);
+
+    
   // Fetch stations from the database
   useEffect(() => {
     const fetchStations = async () => {
@@ -41,37 +54,52 @@ const NormalBooking = () => {
 
   const handleStationSelect = (station) => {
     if (modalType === 'departure') {
-      setDeparture({ trainNumber: station.trainNumber, stationName: station.station.name });
+      if (station.station.id === arrival.stationId) {
+        alert('You cannot select the same station for departure and arrival.');
+        return;
+      }
+      setDeparture({ 
+        trainNumber: station.trainNumber, 
+        stationName: station.station.name, 
+        stationId: station.station.id // Save the station ID
+      });
     } else {
-      setArrival({ trainNumber: station.trainNumber, stationName: station.station.name });
+      if (station.station.id === departure.stationId) {
+        alert('You cannot select the same station for departure and arrival.');
+        return;
+      }
+      setArrival({ 
+        trainNumber: station.trainNumber, 
+        stationName: station.station.name, 
+        stationId: station.station.id // Save the station ID
+      });
     }
     setIsModalOpen(false);
   };
+  
 
   const handleTrainSelect = (train, type) => {
     if (!selectedOption) {
-        alert('Please select a booking option (Paper or Paperless) first');
-        return;
+      alert('Please select a booking option (Paper or Paperless) first');
+      return;
     }
 
     // Ensure the train has the station included
     const stationId = train.station.id; // Accessing the station ID
     if (type === 'departure') {
-        setDeparture({ 
-            trainNumber: train.trainNumber, 
-            stationName: train.station.name, 
-            stationId: stationId // Save the station ID
-        });
+      setDeparture({ 
+        trainNumber: train.trainNumber, 
+        stationName: train.station.name, 
+        stationId: stationId // Save the station ID
+      });
     } else {
-        setArrival({ 
-            trainNumber: train.trainNumber, 
-            stationName: train.station.name, 
-            stationId: stationId // Save the station ID
-        });
+      setArrival({ 
+        trainNumber: train.trainNumber, 
+        stationName: train.station.name, 
+        stationId: stationId // Save the station ID
+      });
     }
-};
-
-
+  };
 
   const filteredStations = stations.filter(station =>
     (station.trainNumber && station.trainNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -96,23 +124,33 @@ const NormalBooking = () => {
     }
   };
 
-
-
   const fetchFare = async () => {
     if (!departure.trainNumber || !arrival.trainNumber || !departure.stationId || !arrival.stationId) {
-        alert('All train numbers and station IDs are required.');
-        return;
+      alert('All train numbers and station IDs are required.');
+      return;
     }
-
+  
     try {
-        const response = await axios.get(`http://localhost:5000/fare?fromTrainNumber=${departure.trainNumber}&toTrainNumber=${arrival.trainNumber}&fromStationId=${departure.stationId}&toStationId=${arrival.stationId}`);
-        console.log('Fare response:', response.data);
-        // Handle the response as needed
+      const response = await axios.get(`http://localhost:5000/fare?fromTrainNumber=${departure.trainNumber}&toTrainNumber=${arrival.trainNumber}&fromStationId=${departure.stationId}&toStationId=${arrival.stationId}`);
+      const fare = response.data.totalFare;
+  
+      console.log('Fare response:', fare);
+  
+      // Call the booking endpoint with the user's email
+      const bookingResponse = await axios.post('http://localhost:5000/book', {
+        departure,
+        arrival,
+        fare,
+        email: userEmail, // Include the user's email in the booking request
+      });
+  
+      alert('Booking successful!');
+  
     } catch (error) {
-        console.error('Error fetching fare:', error.response ? error.response.data : error.message);
+      console.error('Error fetching fare or creating booking:', error.response ? error.response.data : error.message);
     }
-};
-
+  };
+  
 
   return (
     <>
@@ -225,7 +263,6 @@ const NormalBooking = () => {
           >
             <FaTicketAlt className="mr-1" /> GET FARE
           </button>
-
         </div>
 
         {nextTrains.length > 0 && (
@@ -293,7 +330,6 @@ const NormalBooking = () => {
             </div>
           </div>
         )}
-
       </div>
 
       {isModalOpen && (

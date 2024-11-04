@@ -18,16 +18,31 @@ app.use(cors({
 // Replace this with your actual JWT secret
 const JWT_SECRET = 'your_jwt_secret';
 
-// Test database connection on startup 
 (async () => {
-    try {
-        await prisma.$connect();
-        console.log("Connected to the database");
-    } catch (error) {
-        console.error("Database connection error:", error);
-        process.exit(1); // Exit the application if the database connection fails
-    }
+  try {
+      await prisma.$connect();
+      console.log("Connected to the database");
+  } catch (error) {
+      console.error("Database connection error:", error);
+      process.exit(1); // Exit the application if the database connection fails
+  }
 })();
+
+// Test database connection on startup 
+app.get('/', async (req, res) => {
+  try {
+      await prisma.$connect();
+      console.log("Connected to the database");
+      res.send("Connected to the database");
+  } catch (error) {
+      console.error("Database connection error:", error);
+      res.status(500).send("Database connection error");
+  } finally {
+      await prisma.$disconnect(); // Disconnect after the request is handled
+  }
+});
+
+
 
 // Signup Route
 app.post('/signup', async (req, res) => {
@@ -190,6 +205,32 @@ app.get('/fare', async (req, res) => {
   } catch (error) {
       console.error('Error fetching fare:', error);
       res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
+
+
+// Route to handle booking
+app.post('/book', async (req, res) => {
+  const { departure, arrival, fare, email } = req.body; // Include email in the request body
+
+  try {
+    const booking = await prisma.booking.create({
+      data: {
+        userId: 1, // Replace with actual user ID retrieval logic
+        email: email, // Store the user's email
+        departureTrainNumber: departure.trainNumber,
+        arrivalTrainNumber: arrival.trainNumber,
+        fromStationId: departure.stationId,
+        toStationId: arrival.stationId,
+        totalFare: fare,
+        // Add other booking details as necessary
+      },
+    });
+    res.status(201).json({ message: 'Booking successful', booking });
+  } catch (error) {
+    console.error('Error during booking:', error);
+    res.status(500).json({ error: 'Failed to create booking' });
   }
 });
 

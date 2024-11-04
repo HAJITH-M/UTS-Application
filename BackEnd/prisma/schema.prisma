@@ -12,6 +12,8 @@ model User {
   name     String
   email    String  @unique
   password String
+  bookings Booking[] // This establishes a one-to-many relationship
+
 }
 
 model Train {
@@ -41,4 +43,19 @@ model Station {
   id       Int    @id @default(autoincrement())
   name     String @unique
   trains   Train[] // This establishes a one-to-many relationship
+}
+
+
+model Booking {
+  id                    Int       @id @default(autoincrement())
+  userId                Int
+  email                 String    // Add email field
+  departureTrainNumber  String
+  arrivalTrainNumber    String
+  fromStationId        Int
+  toStationId          Int
+  totalFare             Float
+  createdAt            DateTime  @default(now())
+
+  user                 User      @relation(fields: [userId], references: [id])
 }
