@@ -136,20 +136,21 @@ const NormalBooking = () => {
   
       console.log('Fare response:', fare);
   
-      // Call the booking endpoint with the user's email
-      const bookingResponse = await axios.post('http://localhost:5000/book', {
-        departure,
-        arrival,
-        fare,
-        email: userEmail, // Include the user's email in the booking request
+      // Navigate to confirmation page with data
+      navigate('/confirm-booking', {
+        state: {
+          departure,
+          arrival,
+          fare,
+          email: userEmail, // Include the user's email
+        },
       });
   
-      alert('Booking successful!');
-  
     } catch (error) {
-      console.error('Error fetching fare or creating booking:', error.response ? error.response.data : error.message);
+      console.error('Error fetching fare:', error.response ? error.response.data : error.message);
     }
   };
+  
   
 
   return (

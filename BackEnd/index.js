@@ -235,6 +235,27 @@ app.post('/book', async (req, res) => {
 });
 
 
+// Route to fetch user's booking history using email
+
+app.get('/booking-history', async (req, res) => {
+  const { email } = req.query;
+  // Log the email being used to search
+  console.log('Fetching booking history for email:', email);
+
+  const user = await prisma.user.findUnique({
+      where: { email },
+      include: { bookings: true } // Include bookings associated with the user
+  });
+
+  if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+  }
+
+  res.json(user.bookings); // Send back the bookings
+});
+
+
+
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
