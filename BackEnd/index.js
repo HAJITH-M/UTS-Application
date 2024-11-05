@@ -212,48 +212,124 @@ app.get('/fare', async (req, res) => {
 
 // Route to handle booking
 app.post('/book', async (req, res) => {
-  const { departure, arrival, fare, email } = req.body; // Include email in the request body
+  const { departure, arrival, fare, userId } = req.body;
 
   try {
+    // Find departure and arrival stations by their names
+    const departureStation = await prisma.station.findUnique({
+      where: { name: departure.stationName },
+    });
+
+    const arrivalStation = await prisma.station.findUnique({
+      where: { name: arrival.stationName },
+    });
+
+    if (!departureStation || !arrivalStation) {
+      return res.status(404).json({ error: 'Station not found' });
+    }
+
+    // Find the departure and arrival trains by their train numbers
+    const departureTrain = await prisma.train.findFirst({
+      where: { trainNumber: departure.trainNumber },
+    });
+
+    const arrivalTrain = await prisma.train.findFirst({
+      where: { trainNumber: arrival.trainNumber },
+    });
+
+    if (!departureTrain || !arrivalTrain) {
+      return res.status(404).json({ error: 'Train not found' });
+    }
+
+    // Create the booking entry and connect to the train and station records
     const booking = await prisma.booking.create({
       data: {
-        userId: 1, // Replace with actual user ID retrieval logic
-        email: email, // Store the user's email
-        departureTrainNumber: departure.trainNumber,
-        arrivalTrainNumber: arrival.trainNumber,
-        fromStationId: departure.stationId,
-        toStationId: arrival.stationId,
+        user: { connect: { id: userId } }, // Connect the user by ID
+        departureTrain: { connect: { id: departureTrain.id } }, // Connect the departure train by ID
+        arrivalTrain: { connect: { id: arrivalTrain.id } }, // Connect the arrival train by ID
+        fromStation: { connect: { id: departureStation.id } }, // Connect departure station
+        toStation: { connect: { id: arrivalStation.id } }, // Connect arrival station
         totalFare: fare,
-        // Add other booking details as necessary
       },
     });
-    res.status(201).json({ message: 'Booking successful', booking });
+
+    res.status(200).json({ message: 'Booking confirmed', booking });
   } catch (error) {
-    console.error('Error during booking:', error);
-    res.status(500).json({ error: 'Failed to create booking' });
+    console.error('Error creating booking:', error);
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
-
 
 // Route to fetch user's booking history using email
-
 app.get('/booking-history', async (req, res) => {
-  const { email } = req.query;
-  // Log the email being used to search
-  console.log('Fetching booking history for email:', email);
+  const { email } = req.query;  // Get email from query parameters
 
-  const user = await prisma.user.findUnique({
-      where: { email },
-      include: { bookings: true } // Include bookings associated with the user
-  });
-
-  if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
   }
 
-  res.json(user.bookings); // Send back the bookings
+  try {
+    // Find the user based on email and include bookings with their related train and station information
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: {
+        bookings: {  // Include the bookings relation
+          include: {
+            departureTrain: {  // Include the departure train and station info
+              include: {
+                station: true,  // Include departure station details
+              }
+            },
+            arrivalTrain: {  // Include the arrival train and station info
+              include: {
+                station: true,  // Include arrival station details
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // If user not found, return a 404 error
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Send back the bookings with user email, departure and arrival train information
+    const bookingsWithUserEmail = user.bookings.map(booking => ({
+      ...booking,
+      userEmail: user.email,  // Include user email in each booking object
+    }));
+
+    res.json(bookingsWithUserEmail);
+  } catch (error) {
+    console.error('Error fetching booking history:', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
+  }
 });
 
+
+
+// Route to fetch user ID by email
+app.get('/get-user-id', async (req, res) => {
+  const { email } = req.query;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true }, // Only return the user ID
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ userId: user.id });
+  } catch (error) {
+    console.error('Error fetching user ID:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 
 // Start the server
