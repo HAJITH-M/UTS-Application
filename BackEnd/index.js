@@ -129,6 +129,35 @@ app.get('/stations', async (req, res) => {
   }
 });
 
+app.get('/api/stations', async (req, res) => {
+  try {
+    const stations = await prisma.station.findMany({
+      include: {
+        trains: {
+          select: {
+            trainNumber: true,
+          },
+        },
+      },
+    });
+
+    if (!stations) {
+      return res.status(404).json({ error: 'No stations found' });
+    }
+
+    // Prepare the station list with train numbers
+    const stationList = stations.map(station => ({
+      name: station.name,
+      trains: station.trains.map(train => train.trainNumber),
+    }));
+
+    res.json(stationList);
+  } catch (error) {
+    console.error('Error fetching stations:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 // Route to fetch next trains based on departure and arrival stations
 app.get('/next-trains', async (req, res) => {
