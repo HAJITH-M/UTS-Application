@@ -5,26 +5,40 @@ import axios from 'axios';
 
 const BookingHistory = () => {
   const location = useLocation();
-  const [bookings, setBookings] = useState([]); // Add state for bookings
-  const [loading, setLoading] = useState(true); // Add loading state to handle async loading
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchBookings = async () => {
-      const email = localStorage.getItem('userEmail'); // Retrieve email from localStorage
-      if (!email) return;
+      const email = localStorage.getItem('userEmail');
+      if (!email) {
+        if (isMounted) {
+          setLoading(false);
+        }
+        return;
+      }
 
       try {
-        // Make the API call to fetch bookings using the email
         const response = await axios.get(`http://localhost:5000/booking-history?email=${encodeURIComponent(email)}`);
-        setBookings(response.data); // Update the state with fetched data
+        if (isMounted) {
+          setBookings(response.data);
+        }
       } catch (error) {
         console.error('Error fetching booking history:', error);
       } finally {
-        setLoading(false); // Set loading to false after fetching is complete
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchBookings(); // Call the fetch function when component mounts
+    fetchBookings();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
@@ -49,7 +63,6 @@ const BookingHistory = () => {
                     <div>
                       <p className="text-sm text-gray-500">Departure Train</p>
                       <p className="font-semibold text-gray-800">{booking.departureTrainNumber}</p>
-                      {/* Show departure station name */}
                       <p className="text-xs text-gray-500">{booking.departureTrain.station?.name}</p>
                     </div>
                   </div>
@@ -58,7 +71,6 @@ const BookingHistory = () => {
                     <div>
                       <p className="text-sm text-gray-500">Arrival Train</p>
                       <p className="font-semibold text-gray-800">{booking.arrivalTrainNumber}</p>
-                      {/* Show arrival station name */}
                       <p className="text-xs text-gray-500">{booking.arrivalTrain.station?.name}</p>
                     </div>
                   </div>
@@ -69,12 +81,11 @@ const BookingHistory = () => {
                       <p className="font-semibold text-gray-800">${booking.totalFare}</p>
                     </div>
                   </div>
-                  {/* Show User's Email */}
                   <div className="flex items-center space-x-3">
                     <FaEnvelope className="text-blue-600 text-xl" />
                     <div>
                       <p className="text-sm text-gray-500">User Email</p>
-                      <p className="font-semibold text-gray-800">{booking.user?.email || 'Email not available'}</p> {/* Display email */}
+                      <p className="font-semibold text-gray-800">{booking.user?.email || 'Email not available'}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3 col-span-full">
