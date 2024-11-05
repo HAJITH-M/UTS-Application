@@ -7,6 +7,7 @@ import ProtectedRoute from './Auth/ProtectedRoute'
 import HomePage from './Pages/HomePage'
 import BookingConfirmation from './components/NormalBoooking/BookingConfirmation'
 import BookingHistory from './components/NormalBoooking/BookingHistory'
+import TrainCrowdPrediction from './components/CrowdPrediction/CrowdPrediction'
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
             <Route path='/home' element={<ProtectedRoute><HomePage/></ProtectedRoute>}/>
             <Route path="/confirm-booking" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />      
             <Route path="/booking-history" element={<ProtectedRoute><BookingHistory /></ProtectedRoute>} />
+            <Route path='/crowd' element={<TrainCrowdPrediction/>} />
           </Routes>
         <Footer/>
       </Router>  

@@ -332,6 +332,71 @@ app.get('/get-user-id', async (req, res) => {
 });
 
 
+
+
+
+
+
+
+
+
+
+
+app.get('/crowd-prediction', async (req, res) => {
+  const { trainId } = req.query;
+
+  if (!trainId) {
+    return res.status(400).json({ error: 'Train ID is required' });
+  }
+
+  console.log('Fetching crowd prediction for trainId:', trainId); // Log the incoming trainId
+
+  try {
+    const train = await prisma.train.findUnique({
+      where: { id: Number(trainId) },
+      include: {
+        departureBookings: true,
+      },
+    });
+
+    if (!train) {
+      return res.status(404).json({ error: 'Train not found' });
+    }
+
+    const bookingsCount = train.departureBookings.length;
+    const totalCapacity = train.count;
+
+    if (totalCapacity === 0) {
+      return res.status(400).json({ error: 'Train has no capacity defined' });
+    }
+
+    const crowdPercentage = (bookingsCount / totalCapacity) * 100;
+
+    let crowdLevel = 'Low';
+    if (crowdPercentage >= 70 && crowdPercentage < 90) {
+      crowdLevel = 'Medium';
+    } else if (crowdPercentage >= 90) {
+      crowdLevel = 'High';
+    }
+
+    res.json({
+      crowdLevel,
+      crowdPercentage: crowdPercentage.toFixed(2),
+    });
+
+  } catch (error) {
+    console.error('Error calculating crowd prediction:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
+
+
+
+
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

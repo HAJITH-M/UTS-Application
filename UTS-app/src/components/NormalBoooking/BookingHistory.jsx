@@ -79,7 +79,7 @@ const BookingHistory = () => {
                   <div className="flex items-center space-x-3">
                     <FaEnvelope className="text-blue-600 text-xl" />
                     <div>
-                      <p className="text-sm text-gray-500">User Email</p>
+                      <p className="text-sm text-gray-500">Email</p>
                       <p className="font-semibold text-gray-800">{booking.userEmail || 'Email not available'}</p> {/* Display user email */}
                     </div>
                   </div>
