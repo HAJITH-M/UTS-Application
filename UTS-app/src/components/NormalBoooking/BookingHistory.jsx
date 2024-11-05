@@ -3,30 +3,39 @@ import { FaTrain, FaMoneyBillWave, FaEnvelope, FaClock } from 'react-icons/fa';
 import axios from 'axios';
 
 const BookingHistory = () => {
-  const [bookings, setBookings] = useState([]);  // State to store bookings
-  const [loading, setLoading] = useState(true);   // Loading state
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchBookings = async () => {
-      const email = localStorage.getItem('userEmail');  // Get email from localStorage
-      if (!email) return;  // If no email is found, return early
+      const email = localStorage.getItem('userEmail');
+      if (!email) {
+        if (isMounted) setLoading(false);
+        return;
+      }
 
       try {
         const response = await axios.get(`http://localhost:5000/booking-history?email=${encodeURIComponent(email)}`);
-        console.log('Booking History Response:', response.data);  // Log the response to debug
+        console.log('Booking History Response:', response.data);
 
-        // Check if response contains bookings and set them in state
-        if (response.data) {
-          setBookings(response.data);  // Set bookings from the response
+        if (response.data && isMounted) {
+          setBookings(response.data);
         }
       } catch (error) {
         console.error('Error fetching booking history:', error);
       } finally {
-        setLoading(false);  // Set loading to false after data is fetched
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchBookings();  // Call fetch function on component mount
+    fetchBookings();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
@@ -80,7 +89,7 @@ const BookingHistory = () => {
                     <FaEnvelope className="text-blue-600 text-xl" />
                     <div>
                       <p className="text-sm text-gray-500">Email</p>
-                      <p className="font-semibold text-gray-800">{booking.userEmail || 'Email not available'}</p> {/* Display user email */}
+                      <p className="font-semibold text-gray-800">{booking.userEmail || 'Email not available'}</p>
                     </div>
                   </div>
 

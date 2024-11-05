@@ -210,55 +210,10 @@ app.get('/fare', async (req, res) => {
 
 
 
-// Route to handle booking
-app.post('/book', async (req, res) => {
-  const { departure, arrival, fare, userId } = req.body;
 
-  try {
-    // Find departure and arrival stations by their names
-    const departureStation = await prisma.station.findUnique({
-      where: { name: departure.stationName },
-    });
 
-    const arrivalStation = await prisma.station.findUnique({
-      where: { name: arrival.stationName },
-    });
 
-    if (!departureStation || !arrivalStation) {
-      return res.status(404).json({ error: 'Station not found' });
-    }
 
-    // Find the departure and arrival trains by their train numbers
-    const departureTrain = await prisma.train.findFirst({
-      where: { trainNumber: departure.trainNumber },
-    });
-
-    const arrivalTrain = await prisma.train.findFirst({
-      where: { trainNumber: arrival.trainNumber },
-    });
-
-    if (!departureTrain || !arrivalTrain) {
-      return res.status(404).json({ error: 'Train not found' });
-    }
-
-    // Create the booking entry and connect to the train and station records
-    const booking = await prisma.booking.create({
-      data: {
-        user: { connect: { id: userId } }, // Connect the user by ID
-        departureTrain: { connect: { id: departureTrain.id } }, // Connect the departure train by ID
-        arrivalTrain: { connect: { id: arrivalTrain.id } }, // Connect the arrival train by ID
-        fromStation: { connect: { id: departureStation.id } }, // Connect departure station
-        toStation: { connect: { id: arrivalStation.id } }, // Connect arrival station
-        totalFare: fare,
-      },
-    });
-
-    res.status(200).json({ message: 'Booking confirmed', booking });
-  } catch (error) {
-    console.error('Error creating booking:', error);
-    res.status(500).json({ error: 'Internal Server Error', message: error.message });
-  }
-});
 
 // Route to fetch user's booking history using email
 app.get('/booking-history', async (req, res) => {
@@ -299,6 +254,8 @@ app.get('/booking-history', async (req, res) => {
     const bookingsWithUserEmail = user.bookings.map(booking => ({
       ...booking,
       userEmail: user.email,  // Include user email in each booking object
+      departureTrainNumber: booking.departureTrain.trainNumber,  // Add train number
+      arrivalTrainNumber: booking.arrivalTrain.trainNumber,      // Add train number
     }));
 
     res.json(bookingsWithUserEmail);
@@ -307,6 +264,138 @@ app.get('/booking-history', async (req, res) => {
     res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
+
+
+
+
+
+
+
+
+
+
+
+// Function to fetch station by ID
+const getStationById = async (stationId) => {
+  try {
+    const station = await prisma.station.findUnique({
+      where: { id: stationId },
+    });
+
+    if (!station) {
+      throw new Error('Station not found');
+    }
+
+    return station;
+  } catch (error) {
+    console.error('Error fetching station by ID:', error);
+    throw error;
+  }
+};
+
+// Function to save the booking to the database
+// Function to save the booking to the database  
+const saveBooking = async (booking) => {
+  try {
+    const { departureTrainId, arrivalTrainId, fare, userId, departureStationName, arrivalStationName } = booking;
+
+    // Calculate total fare (departureFare + arrivalFare)
+    const totalFare = fare; // Assuming fare passed is already the total fare, you may adjust this logic
+
+    // Create booking record
+    const savedBooking = await prisma.booking.create({
+      data: {
+        departureTrainId,
+        arrivalTrainId,
+        fare,
+        userId,
+        departureStationName,
+        arrivalStationName,
+        totalFare, // Ensure totalFare is passed here
+      },
+    });
+
+    return savedBooking;
+  } catch (error) {
+    console.error('Error saving booking:', error);
+    throw new Error('Failed to save booking');
+  }
+};
+
+// book route
+
+
+app.post('/book', async (req, res) => {
+  const { departureTrainId, arrivalTrainId, userId } = req.body;
+
+  // Check if the required fields are provided
+  if (!departureTrainId || !arrivalTrainId || !userId) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    // Fetch details of departure and arrival trains
+    const departureStation = await prisma.train.findUnique({
+      where: { id: departureTrainId },
+      select: {
+        stationId: true,
+        basePrice: true,
+        gstTaxAmount: true,
+      },
+    });
+
+    const arrivalStation = await prisma.train.findUnique({
+      where: { id: arrivalTrainId },
+      select: {
+        stationId: true,
+        basePrice: true,
+        gstTaxAmount: true,
+      },
+    });
+
+    // Check if either train is not found
+    if (!departureStation || !arrivalStation) {
+      return res.status(404).json({ error: 'Train not found' });
+    }
+
+    // Calculate the total fare based on the available pricing data
+    const departureFare = departureStation.basePrice + departureStation.gstTaxAmount;
+    const arrivalFare = arrivalStation.basePrice + arrivalStation.gstTaxAmount;
+    const totalFare = departureFare + arrivalFare;
+
+    // Save the booking to the database
+    const savedBooking = await prisma.booking.create({
+      data: {
+        departureTrainId: departureTrainId,
+        arrivalTrainId: arrivalTrainId,
+        totalFare: totalFare,
+        userId: userId,
+        fromStationId: departureStation.stationId,
+        toStationId: arrivalStation.stationId,
+      },
+    });
+
+    // Return a success message with the saved booking details
+    res.status(200).json({
+      message: 'Booking successful!',
+      booking: savedBooking,
+    });
+  } catch (error) {
+    console.error('Error creating booking:', error);
+    res.status(500).json({ error: 'Error creating booking. Please try again.' });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -341,48 +430,56 @@ app.get('/get-user-id', async (req, res) => {
 
 
 
-
 app.get('/crowd-prediction', async (req, res) => {
-  const { trainId } = req.query;
+  const { stationName } = req.query;
 
-  if (!trainId) {
-    return res.status(400).json({ error: 'Train ID is required' });
+  if (!stationName) {
+    return res.status(400).json({ error: 'Station name is required' });
   }
 
-  console.log('Fetching crowd prediction for trainId:', trainId); // Log the incoming trainId
-
   try {
-    const train = await prisma.train.findUnique({
-      where: { id: Number(trainId) },
+    // Find all trains that depart from the given station
+    const station = await prisma.station.findUnique({
+      where: { name: stationName },
       include: {
-        departureBookings: true,
+        trains: { // Assuming you have a relation between Station and Train
+          include: {
+            departureBookings: true, // Include bookings for each train
+          },
+        },
       },
     });
 
-    if (!train) {
-      return res.status(404).json({ error: 'Train not found' });
+    if (!station) {
+      return res.status(404).json({ error: 'Station not found' });
     }
 
-    const bookingsCount = train.departureBookings.length;
-    const totalCapacity = train.count;
+    // Calculate crowd prediction for each train
+    const crowdData = station.trains.map(train => {
+      const bookingsCount = train.departureBookings.length;
+      const totalCapacity = train.count;
 
-    if (totalCapacity === 0) {
-      return res.status(400).json({ error: 'Train has no capacity defined' });
-    }
+      if (totalCapacity === 0) {
+        return { trainNumber: train.trainNumber, crowdLevel: 'Unknown', crowdPercentage: 0 };
+      }
 
-    const crowdPercentage = (bookingsCount / totalCapacity) * 100;
+      const crowdPercentage = (bookingsCount / totalCapacity) * 100;
 
-    let crowdLevel = 'Low';
-    if (crowdPercentage >= 70 && crowdPercentage < 90) {
-      crowdLevel = 'Medium';
-    } else if (crowdPercentage >= 90) {
-      crowdLevel = 'High';
-    }
+      let crowdLevel = 'Low';
+      if (crowdPercentage >= 70 && crowdPercentage < 90) {
+        crowdLevel = 'Medium';
+      } else if (crowdPercentage >= 90) {
+        crowdLevel = 'High';
+      }
 
-    res.json({
-      crowdLevel,
-      crowdPercentage: crowdPercentage.toFixed(2),
+      return {
+        trainNumber: train.trainNumber,
+        crowdLevel,
+        crowdPercentage: crowdPercentage.toFixed(2),
+      };
     });
+
+    res.json(crowdData);
 
   } catch (error) {
     console.error('Error calculating crowd prediction:', error);

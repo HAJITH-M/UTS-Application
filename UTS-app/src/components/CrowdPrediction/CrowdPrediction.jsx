@@ -1,64 +1,85 @@
-import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
 
-function TrainCrowdPrediction() {
-  const [crowdLevel, setCrowdLevel] = useState('');
-  const [crowdPercentage, setCrowdPercentage] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const StationCrowdPrediction = () => {
+  const [stationName, setStationName] = useState('');
+  const [crowdData, setCrowdData] = useState([]);
+  const [error, setError] = useState('');
 
-  // Get the trainId from URL search params
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const trainId = queryParams.get('trainId'); // Get the trainId from query string
-
-  useEffect(() => {
-    async function fetchCrowdPrediction() {
-      setLoading(true);
-      setError(null);
-      if (!trainId) {
-        setError('Train ID is required.');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetch(`/crowd-prediction?trainId=${trainId}`);
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'An error occurred while fetching the crowd prediction');
-        }
-
-        const data = await response.json();
-        setCrowdLevel(data.crowdLevel);
-        setCrowdPercentage(data.crowdPercentage);
-      } catch (err) {
-        console.error('Error fetching crowd prediction:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+  const handleFetchCrowdPrediction = async () => {
+    if (!stationName) {
+      setError('Please provide a station name');
+      return;
     }
 
-    fetchCrowdPrediction();
-  }, [trainId]);
+    // Normalize station name (Title Case)
+    const formattedStationName = formatStationName(stationName);
+
+    try {
+      const controller = new AbortController();
+      const signal = controller.signal;
+      
+      const response = await fetch(`http://localhost:5000/crowd-prediction?stationName=${formattedStationName}`, {
+        signal: signal,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setCrowdData(data);
+      setError('');
+      
+      return () => controller.abort();
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        setError('Request was cancelled');
+      } else {
+        setError('Failed to fetch crowd prediction');
+      }
+    }
+  };
+
+  // Function to format station name to Title Case
+  const formatStationName = (name) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
 
   return (
     <div>
-      {loading ? (
-        <p>Loading crowd prediction...</p>
-      ) : error ? (
-        <p style={{ color: 'red' }}>Error: {error}</p>
-      ) : (
+      <h1>Station Crowd Prediction</h1>
+      <input
+        type="text"
+        value={stationName}
+        onChange={(e) => setStationName(e.target.value)}
+        placeholder="Enter Station Name"
+      />
+      <button onClick={handleFetchCrowdPrediction}>Get Prediction</button>
+
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      {crowdData.length > 0 && (
         <div>
-          <h3>Crowd Prediction</h3>
-          <p>{`Crowd level: ${crowdLevel}`}</p>
-          <p>{`Crowd percentage: ${crowdPercentage}%`}</p>
-          <progress value={crowdPercentage} max="100"></progress>
+          <h2>Train Crowd Levels for Station: {stationName}</h2>
+          <ul>
+            {crowdData.map((train, index) => (
+              <li key={index}>
+                <p>Train Number: {train.trainNumber}</p>
+                <p>Crowd Level: {train.crowdLevel}</p>
+                <p>Crowd Percentage: {train.crowdPercentage}%</p>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
   );
-}
+};
 
-export default TrainCrowdPrediction;
+export default StationCrowdPrediction;
