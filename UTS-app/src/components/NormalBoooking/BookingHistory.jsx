@@ -1,4 +1,3 @@
-// BookingHistory.jsx
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { FaTrain, FaMoneyBillWave, FaEnvelope, FaClock } from 'react-icons/fa';
@@ -25,6 +24,8 @@ const BookingHistory = () => {
                     <div>
                       <p className="text-sm text-gray-500">Departure Train</p>
                       <p className="font-semibold text-gray-800">{booking.departureTrainNumber}</p>
+                      {/* Show departure station name */}
+                      <p className="text-xs text-gray-500">{booking.departureTrain.station?.name}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -32,6 +33,8 @@ const BookingHistory = () => {
                     <div>
                       <p className="text-sm text-gray-500">Arrival Train</p>
                       <p className="font-semibold text-gray-800">{booking.arrivalTrainNumber}</p>
+                      {/* Show arrival station name */}
+                      <p className="text-xs text-gray-500">{booking.arrivalTrain.station?.name}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -41,11 +44,12 @@ const BookingHistory = () => {
                       <p className="font-semibold text-gray-800">${booking.totalFare}</p>
                     </div>
                   </div>
+                  {/* Show User's Email */}
                   <div className="flex items-center space-x-3">
                     <FaEnvelope className="text-blue-600 text-xl" />
                     <div>
-                      <p className="text-sm text-gray-500">Email</p>
-                      <p className="font-semibold text-gray-800">{booking.email}</p>
+                      <p className="text-sm text-gray-500">User Email</p>
+                      <p className="font-semibold text-gray-800">{booking.userEmail}</p> {/* Display the email */}
                     </div>
                   </div>
                   <div className="flex items-center space-x-3 col-span-full">

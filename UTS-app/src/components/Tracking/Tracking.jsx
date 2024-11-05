@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // Updated import
 import { FaTicketAlt, FaHistory, FaEye, FaWallet, FaUser, FaExchangeAlt } from 'react-icons/fa';
+import axios from 'axios';
 
 const Tracking = () => {
   const [activeButton, setActiveButton] = useState(null);
@@ -18,22 +19,20 @@ const Tracking = () => {
       console.error('No user email found');
       return;
     }
-
+  
     const url = `http://localhost:5000/booking-history?email=${encodeURIComponent(userEmail)}`;
-    
+  
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error}`);
+      const response = await axios.get(url); // Await the response
+      if (response.status === 200) {
+        setBookings(response.data);
+        navigate('/booking-history', { state: { bookings: response.data } }); // Pass the bookings state to the next page
       }
-      const data = await response.json();
-      setBookings(data);
-      navigate('/booking-history', { state: { bookings: data } }); // Pass bookings as state
     } catch (error) {
-      console.error('Error fetching booking history:', error);
+      console.error('Error fetching booking history:', error.response ? error.response.data : error.message);
     }
   };
+  
 
   const handleButtonClick = (buttonType) => {
     setActiveButton(buttonType);
