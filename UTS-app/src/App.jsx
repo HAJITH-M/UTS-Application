@@ -16,9 +16,8 @@ const App = () => {
           <Routes>
             <Route path='/' element={<LoginSignup/>}/>
             <Route path='/home' element={<ProtectedRoute><HomePage/></ProtectedRoute>}/>
-            <Route path="/confirm-booking" element={<BookingConfirmation />} />      
-            <Route path="/booking-history" element={<BookingHistory />} />
-    
+            <Route path="/confirm-booking" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />      
+            <Route path="/booking-history" element={<ProtectedRoute><BookingHistory /></ProtectedRoute>} />
           </Routes>
         <Footer/>
       </Router>  

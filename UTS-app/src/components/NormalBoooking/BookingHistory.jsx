@@ -1,44 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
 import { FaTrain, FaMoneyBillWave, FaEnvelope, FaClock } from 'react-icons/fa';
 import axios from 'axios';
 
 const BookingHistory = () => {
-  const location = useLocation();
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [bookings, setBookings] = useState([]);  // State to store bookings
+  const [loading, setLoading] = useState(true);   // Loading state
 
   useEffect(() => {
-    let isMounted = true;
-
     const fetchBookings = async () => {
-      const email = localStorage.getItem('userEmail');
-      if (!email) {
-        if (isMounted) {
-          setLoading(false);
-        }
-        return;
-      }
+      const email = localStorage.getItem('userEmail');  // Get email from localStorage
+      if (!email) return;  // If no email is found, return early
 
       try {
         const response = await axios.get(`http://localhost:5000/booking-history?email=${encodeURIComponent(email)}`);
-        if (isMounted) {
-          setBookings(response.data);
+        console.log('Booking History Response:', response.data);  // Log the response to debug
+
+        // Check if response contains bookings and set them in state
+        if (response.data) {
+          setBookings(response.data);  // Set bookings from the response
         }
       } catch (error) {
         console.error('Error fetching booking history:', error);
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);  // Set loading to false after data is fetched
       }
     };
 
-    fetchBookings();
-
-    return () => {
-      isMounted = false;
-    };
+    fetchBookings();  // Call fetch function on component mount
   }, []);
 
   return (
@@ -58,22 +46,27 @@ const BookingHistory = () => {
             {bookings.map((booking) => (
               <li key={booking.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Departure Train Information */}
                   <div className="flex items-center space-x-3">
                     <FaTrain className="text-indigo-600 text-xl" />
                     <div>
                       <p className="text-sm text-gray-500">Departure Train</p>
                       <p className="font-semibold text-gray-800">{booking.departureTrainNumber}</p>
-                      <p className="text-xs text-gray-500">{booking.departureTrain.station?.name}</p>
+                      <p className="text-xs text-gray-500">{booking.departureTrain?.station?.name}</p>
                     </div>
                   </div>
+
+                  {/* Arrival Train Information */}
                   <div className="flex items-center space-x-3">
                     <FaTrain className="text-indigo-600 text-xl" />
                     <div>
                       <p className="text-sm text-gray-500">Arrival Train</p>
                       <p className="font-semibold text-gray-800">{booking.arrivalTrainNumber}</p>
-                      <p className="text-xs text-gray-500">{booking.arrivalTrain.station?.name}</p>
+                      <p className="text-xs text-gray-500">{booking.arrivalTrain?.station?.name}</p>
                     </div>
                   </div>
+
+                  {/* Total Fare Information */}
                   <div className="flex items-center space-x-3">
                     <FaMoneyBillWave className="text-green-600 text-xl" />
                     <div>
@@ -81,13 +74,17 @@ const BookingHistory = () => {
                       <p className="font-semibold text-gray-800">${booking.totalFare}</p>
                     </div>
                   </div>
+
+                  {/* User Email */}
                   <div className="flex items-center space-x-3">
                     <FaEnvelope className="text-blue-600 text-xl" />
                     <div>
                       <p className="text-sm text-gray-500">User Email</p>
-                      <p className="font-semibold text-gray-800">{booking.user?.email || 'Email not available'}</p>
+                      <p className="font-semibold text-gray-800">{booking.userEmail || 'Email not available'}</p> {/* Display user email */}
                     </div>
                   </div>
+
+                  {/* Booking Time */}
                   <div className="flex items-center space-x-3 col-span-full">
                     <FaClock className="text-purple-600 text-xl" />
                     <div>
