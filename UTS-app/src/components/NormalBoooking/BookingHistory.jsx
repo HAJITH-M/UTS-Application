@@ -1,16 +1,41 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { FaTrain, FaMoneyBillWave, FaEnvelope, FaClock } from 'react-icons/fa';
+import axios from 'axios';
 
 const BookingHistory = () => {
   const location = useLocation();
-  const bookings = location.state?.bookings || []; // Get bookings from state
+  const [bookings, setBookings] = useState([]); // Add state for bookings
+  const [loading, setLoading] = useState(true); // Add loading state to handle async loading
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      const email = localStorage.getItem('userEmail'); // Retrieve email from localStorage
+      if (!email) return;
+
+      try {
+        // Make the API call to fetch bookings using the email
+        const response = await axios.get(`http://localhost:5000/booking-history?email=${encodeURIComponent(email)}`);
+        setBookings(response.data); // Update the state with fetched data
+      } catch (error) {
+        console.error('Error fetching booking history:', error);
+      } finally {
+        setLoading(false); // Set loading to false after fetching is complete
+      }
+    };
+
+    fetchBookings(); // Call the fetch function when component mounts
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-50 to-indigo-50 p-8">
       <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Your Booking History</h2>
       <div className="max-w-4xl mx-auto">
-        {bookings.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-10 bg-white rounded-lg shadow-md">
+            <p className="text-gray-600 text-lg">Loading your booking history...</p>
+          </div>
+        ) : bookings.length === 0 ? (
           <div className="text-center py-10 bg-white rounded-lg shadow-md">
             <p className="text-gray-600 text-lg">No bookings found.</p>
           </div>
@@ -49,7 +74,7 @@ const BookingHistory = () => {
                     <FaEnvelope className="text-blue-600 text-xl" />
                     <div>
                       <p className="text-sm text-gray-500">User Email</p>
-                      <p className="font-semibold text-gray-800">{booking.userEmail}</p> {/* Display the email */}
+                      <p className="font-semibold text-gray-800">{booking.user?.email || 'Email not available'}</p> {/* Display email */}
                     </div>
                   </div>
                   <div className="flex items-center space-x-3 col-span-full">
