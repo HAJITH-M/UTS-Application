@@ -39,7 +39,7 @@ const BookingHistory = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50 to-indigo-50 p-8">
+    <div className="min-h-screen bg-gradient-to-r from-orange-50 to-red-50 p-8">
       <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Your Booking History</h2>
       <div className="max-w-4xl mx-auto">
         {loading ? (
@@ -57,7 +57,7 @@ const BookingHistory = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Departure Train Information */}
                   <div className="flex items-center space-x-3">
-                    <FaTrain className="text-indigo-600 text-xl" />
+                    <FaTrain className="text-orange-500 text-xl" />
                     <div>
                       <p className="text-sm text-gray-500">Departure Train</p>
                       <p className="font-semibold text-gray-800">{booking.departureTrainNumber}</p>
@@ -67,7 +67,7 @@ const BookingHistory = () => {
 
                   {/* Arrival Train Information */}
                   <div className="flex items-center space-x-3">
-                    <FaTrain className="text-indigo-600 text-xl" />
+                    <FaTrain className="text-orange-500 text-xl" />
                     <div>
                       <p className="text-sm text-gray-500">Arrival Train</p>
                       <p className="font-semibold text-gray-800">{booking.arrivalTrainNumber}</p>
@@ -77,7 +77,7 @@ const BookingHistory = () => {
 
                   {/* Total Fare Information */}
                   <div className="flex items-center space-x-3">
-                    <FaMoneyBillWave className="text-green-600 text-xl" />
+                    <FaMoneyBillWave className="text-red-400 text-xl" />
                     <div>
                       <p className="text-sm text-gray-500">Total Fare</p>
                       <p className="font-semibold text-gray-800">${booking.totalFare}</p>
@@ -86,7 +86,7 @@ const BookingHistory = () => {
 
                   {/* User Email */}
                   <div className="flex items-center space-x-3">
-                    <FaEnvelope className="text-blue-600 text-xl" />
+                    <FaEnvelope className="text-orange-500 text-xl" />
                     <div>
                       <p className="text-sm text-gray-500">Email</p>
                       <p className="font-semibold text-gray-800">{booking.userEmail || 'Email not available'}</p>
@@ -95,10 +95,16 @@ const BookingHistory = () => {
 
                   {/* Booking Time */}
                   <div className="flex items-center space-x-3 col-span-full">
-                    <FaClock className="text-purple-600 text-xl" />
+                    <FaClock className="text-red-400 text-xl" />
                     <div>
                       <p className="text-sm text-gray-500">Booking Time</p>
-                      <p className="font-semibold text-gray-800">{new Date(booking.createdAt).toLocaleString()}</p>
+                      <p className="font-semibold text-gray-800">
+                        {new Date(booking.createdAt).toLocaleDateString('en-GB', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })}
+                      </p>
                     </div>
                   </div>
                 </div>

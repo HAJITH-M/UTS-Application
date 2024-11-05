@@ -13,26 +13,23 @@ const NormalBooking = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const navigate = useNavigate(); // Initialize navigate
-  const [fare, setFare] = useState(null); // New state for fare
-  const [userEmail, setUserEmail] = useState(''); // State for user email
+  const navigate = useNavigate();
+  const [fare, setFare] = useState(null);
+  const [userEmail, setUserEmail] = useState('');
+  const [showWarningModal, setShowWarningModal] = useState(false);
 
-
-    // Fetch user email from local storage
-    useEffect(() => {
-      const email = localStorage.getItem('userEmail'); // Adjust this key based on how you stored the email
-      if (email) {
-        setUserEmail(email);
-      }
-    }, []);
-
+  useEffect(() => {
+    const email = localStorage.getItem('userEmail');
+    if (email) {
+      setUserEmail(email);
+    }
+  }, []);
     
-  // Fetch stations from the database
   useEffect(() => {
     const fetchStations = async () => {
       try {
         const response = await axios.get('http://localhost:5000/stations');
-        console.log('Fetched stations:', response.data); // Debug: check fetched data
+        console.log('Fetched stations:', response.data);
         setStations(response.data);
       } catch (error) {
         console.error('Error fetching stations:', error.response ? error.response.data : error.message);
@@ -44,7 +41,7 @@ const NormalBooking = () => {
 
   const handleStationSearch = (type) => {
     if (!selectedOption) {
-      alert('Please select a booking option (Paper or Paperless) first');
+      setShowWarningModal(true);
       return;
     }
     setModalType(type);
@@ -61,7 +58,7 @@ const NormalBooking = () => {
       setDeparture({ 
         trainNumber: station.trainNumber, 
         stationName: station.station.name, 
-        stationId: station.station.id // Save the station ID
+        stationId: station.station.id
       });
     } else {
       if (station.station.id === departure.stationId) {
@@ -71,32 +68,30 @@ const NormalBooking = () => {
       setArrival({ 
         trainNumber: station.trainNumber, 
         stationName: station.station.name, 
-        stationId: station.station.id // Save the station ID
+        stationId: station.station.id
       });
     }
     setIsModalOpen(false);
   };
   
-
   const handleTrainSelect = (train, type) => {
     if (!selectedOption) {
-      alert('Please select a booking option (Paper or Paperless) first');
+      setShowWarningModal(true);
       return;
     }
 
-    // Ensure the train has the station included
-    const stationId = train.station.id; // Accessing the station ID
+    const stationId = train.station.id;
     if (type === 'departure') {
       setDeparture({ 
         trainNumber: train.trainNumber, 
         stationName: train.station.name, 
-        stationId: stationId // Save the station ID
+        stationId: stationId
       });
     } else {
       setArrival({ 
         trainNumber: train.trainNumber, 
         stationName: train.station.name, 
-        stationId: stationId // Save the station ID
+        stationId: stationId
       });
     }
   };
@@ -108,7 +103,7 @@ const NormalBooking = () => {
 
   const fetchNextTrains = async () => {
     if (!selectedOption) {
-      alert('Please select a booking option (Paper or Paperless) first');
+      setShowWarningModal(true);
       return;
     }
     if (!departure.trainNumber || !arrival.trainNumber) {
@@ -136,13 +131,12 @@ const NormalBooking = () => {
   
       console.log('Fare response:', fare);
   
-      // Navigate to confirmation page with data
       navigate('/confirm-booking', {
         state: {
           departure,
           arrival,
           fare,
-          email: userEmail, // Include the user's email
+          email: userEmail,
         },
       });
   
@@ -150,8 +144,6 @@ const NormalBooking = () => {
       console.error('Error fetching fare:', error.response ? error.response.data : error.message);
     }
   };
-  
-  
 
   return (
     <>
@@ -332,7 +324,6 @@ const NormalBooking = () => {
           </div>
         )}
       </div>
-
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md transform transition-all">
@@ -375,6 +366,24 @@ const NormalBooking = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showWarningModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
+            <div className="text-center">
+              <FaExchangeAlt className="mx-auto text-orange-500 text-3xl mb-4" />
+              <h2 className="text-xl font-bold text-gray-800 mb-2">Booking Option Required</h2>
+              <p className="text-gray-600 mb-6">Please select a booking option (Paper or Paperless) before proceeding.</p>
+              <button
+                onClick={() => setShowWarningModal(false)}
+                className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+              >
+                OK
+              </button>
             </div>
           </div>
         </div>

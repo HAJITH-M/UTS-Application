@@ -12,21 +12,21 @@ const BookingConfirmation = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   // Fetch userId based on email stored in localStorage
   useEffect(() => {
-    const email = localStorage.getItem('userEmail'); // Retrieve email from localStorage
+    const email = localStorage.getItem('userEmail');
 
     if (email) {
-      // Make a request to your backend to fetch userId based on the email
       const fetchUserId = async () => {
         try {
           const response = await axios.get('http://localhost:5000/get-user-id', {
-            params: { email }, // Assuming you have a route to fetch userId by email
+            params: { email },
           });
 
           if (response.data.userId) {
-            setUserId(response.data.userId); // Set the userId
+            setUserId(response.data.userId);
           } else {
             console.error('User ID not found');
             setError('User ID not found');
@@ -51,69 +51,75 @@ const BookingConfirmation = () => {
       return;
     }
   
-    // Log the data being sent
-    console.log('Booking data:', {
-      departureTrainId: departure.stationId,
-      arrivalTrainId: arrival.stationId,
-      fare,
-      userId,
-    });
-  
+    setLoading(true);
+    
     try {
       const response = await axios.post('http://localhost:5000/book', {
         departureTrainId: departure.stationId,
         arrivalTrainId: arrival.stationId,
-        userId, // Ensure userId is available
+        userId,
       });
   
       if (response.data.message === 'Booking successful!') {
-        alert('Booking successful!');
-        navigate('/'); // Redirect to homepage or booking list
+        setSuccessMessage('Booking successful!');
+        setShowModal(true);
+        setTimeout(() => {
+          setShowModal(false);
+          navigate('/');
+        }, 2000);
       }
     } catch (error) {
       console.error('Error confirming booking:', error.response ? error.response.data : error.message);
-      alert('Error confirming booking. Please try again.');
+      setError('Error confirming booking. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
-  
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Confirm Your Booking</h1>
+      <h1 className="text-xl font-bold mb-4 text-orange-500">Confirm Your Booking</h1>
       
       {/* Error message */}
       {error && (
-        <div className="text-red-500 bg-red-100 p-2 mb-4 rounded">
+        <div className="text-red-500 bg-red-300 p-2 mb-4 rounded">
           {error}
         </div>
       )}
 
-      {/* Success message */}
-      {successMessage && (
-        <div className="text-green-500 bg-green-100 p-2 mb-4 rounded">
-          {successMessage}
+      {/* Success Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl">
+            <div className="text-green-500 text-center">
+              <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <p className="text-xl font-semibold">{successMessage}</p>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Train details */}
-      <div>
-        <h2 className="font-semibold">Departure Train:</h2>
-        <p>{departure?.trainNumber} - {departure?.stationName}</p>
+      <div className="bg-gradient-to-r from-orange-200 to-red-100 p-4 rounded-lg mb-4">
+        <h2 className="font-semibold text-orange-600">Departure Train:</h2>
+        <p className="text-red-600">{departure?.trainNumber} - {departure?.stationName}</p>
       </div>
-      <div>
-        <h2 className="font-semibold">Arrival Train:</h2>
-        <p>{arrival?.trainNumber} - {arrival?.stationName}</p>
+      <div className="bg-gradient-to-r from-orange-100 to-red-50 p-4 rounded-lg mb-4">
+        <h2 className="font-semibold text-orange-600">Arrival Train:</h2>
+        <p className="text-red-600">{arrival?.trainNumber} - {arrival?.stationName}</p>
       </div>
-      <div>
-        <h2 className="font-semibold">Total Fare:</h2>
-        <p>${fare}</p>
+      <div className="bg-gradient-to-r from-orange-100 to-red-50 p-4 rounded-lg mb-4">
+        <h2 className="font-semibold text-orange-600">Total Fare:</h2>
+        <p className="text-red-600">${fare}</p>
       </div>
 
       {/* Booking button */}
       <button 
         onClick={handleConfirmBooking} 
-        className="bg-green-500 text-white px-4 py-2 rounded mt-4"
-        disabled={loading || !userId} // Disable button while loading or if userId isn't fetched
+        className="bg-gradient-to-r from-orange-500 to-red-400 text-white px-4 py-2 rounded mt-4 hover:from-orange-600 hover:to-red-500"
+        disabled={loading || !userId}
       >
         {loading ? 'Booking...' : 'Confirm Booking'}
       </button>
@@ -121,7 +127,7 @@ const BookingConfirmation = () => {
       {/* Cancel button to navigate back */}
       <button 
         onClick={() => navigate(-1)} 
-        className="bg-gray-500 text-white px-4 py-2 rounded mt-4 ml-2"
+        className="bg-gray-500 text-white px-4 py-2 rounded mt-4 ml-2 hover:bg-gray-600"
       >
         Cancel
       </button>

@@ -458,7 +458,6 @@ app.get('/get-user-id', async (req, res) => {
 
 
 
-
 app.get('/crowd-prediction', async (req, res) => {
   const { stationName } = req.query;
 
@@ -483,38 +482,53 @@ app.get('/crowd-prediction', async (req, res) => {
       return res.status(404).json({ error: 'Station not found' });
     }
 
-    // Calculate crowd prediction for each train
+    // Group bookings by date (createdAt)
     const crowdData = station.trains.map(train => {
-      const bookingsCount = train.departureBookings.length;
-      const totalCapacity = train.count;
+      const groupedBookings = train.departureBookings.reduce((acc, booking) => {
+        const bookingDate = booking.createdAt.toISOString().split('T')[0]; // Extract date (YYYY-MM-DD)
+        if (!acc[bookingDate]) {
+          acc[bookingDate] = [];
+        }
+        acc[bookingDate].push(booking);
+        return acc;
+      }, {});
 
-      if (totalCapacity === 0) {
-        return { trainNumber: train.trainNumber, crowdLevel: 'Unknown', crowdPercentage: 0 };
-      }
+      // Calculate crowd prediction for each date
+      const predictionData = Object.keys(groupedBookings).map(bookingDate => {
+        const bookingsCount = groupedBookings[bookingDate].length;
+        const totalCapacity = train.count;
 
-      const crowdPercentage = (bookingsCount / totalCapacity) * 100;
+        if (totalCapacity === 0) {
+          return { date: bookingDate, crowdLevel: 'Unknown', crowdPercentage: 0 };
+        }
 
-      let crowdLevel = 'Low';
-      if (crowdPercentage >= 70 && crowdPercentage < 90) {
-        crowdLevel = 'Medium';
-      } else if (crowdPercentage >= 90) {
-        crowdLevel = 'High';
-      }
+        const crowdPercentage = (bookingsCount / totalCapacity) * 100;
 
-      return {
-        trainNumber: train.trainNumber,
-        crowdLevel,
-        crowdPercentage: crowdPercentage.toFixed(2),
-      };
-    });
+        let crowdLevel = 'Low';
+        if (crowdPercentage >= 70 && crowdPercentage < 90) {
+          crowdLevel = 'Medium';
+        } else if (crowdPercentage >= 90) {
+          crowdLevel = 'High';
+        }
+
+        return {
+          date: bookingDate,
+          trainNumber: train.trainNumber,
+          crowdLevel,
+          crowdPercentage: crowdPercentage.toFixed(2),
+        };
+      });
+
+      return predictionData;
+    }).flat(); // Flatten the array of arrays
 
     res.json(crowdData);
-
   } catch (error) {
     console.error('Error calculating crowd prediction:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 
