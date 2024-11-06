@@ -71,7 +71,7 @@ const StationCrowdPrediction = () => {
       return;
     }
 
-    const formattedStationName = formatStationName(selectedStation);
+    const formattedStationName = encodeURIComponent(selectedStation);
 
     try {
       const controller = new AbortController();
@@ -100,18 +100,16 @@ const StationCrowdPrediction = () => {
   const groupDataByDate = (data) => {
     return data.reduce((acc, { date, crowdPercentage }) => {
       if (!acc[date]) acc[date] = [];
-      acc[date].push(crowdPercentage);
+      acc[date].push(parseFloat(crowdPercentage) || 0);
       return acc;
     }, {});
   };
 
-
   const calculateAverageCrowdPercentage = () => {
-
     if (crowdData.length === 0) return null;
-    const total = crowdData.reduce((sum, { crowdPercentage }) => sum + crowdPercentage, 0);
-    const average = total / crowdData.length;
-
+    const validPercentages = crowdData.map(data => parseFloat(data.crowdPercentage) || 0);
+    const total = validPercentages.reduce((sum, percentage) => sum + percentage, 0);
+    const average = total / validPercentages.length;
     return average.toFixed(2);
   };
 
@@ -120,8 +118,10 @@ const StationCrowdPrediction = () => {
 
     const dates = Object.keys(groupedData);
     const crowdPercentages = dates.map(date => {
-      const totalCrowdPercentage = groupedData[date].reduce((sum, percentage) => sum + percentage, 0);
-      return totalCrowdPercentage / groupedData[date].length;
+      const validPercentages = groupedData[date].filter(percentage => !isNaN(percentage));
+      if (validPercentages.length === 0) return 0;
+      const totalCrowdPercentage = validPercentages.reduce((sum, percentage) => sum + percentage, 0);
+      return totalCrowdPercentage / validPercentages.length;
     });
 
     return {
@@ -129,28 +129,22 @@ const StationCrowdPrediction = () => {
       datasets: [{
         label: 'Average Crowd Percentage',
         data: crowdPercentages,
-
-
         backgroundColor: 'rgba(255, 140, 0, 0.5)',
         borderColor: 'rgba(255, 69, 0, 1)',
         borderWidth: 2,
         borderRadius: 8,
-
         hoverBackgroundColor: 'rgba(255, 140, 0, 0.7)',
       }],
     };
   };
 
   return (
-
-
     <div className="min-h-screen bg-orange-50 p-8">
       <h1 className="text-4xl font-bold text-red-800 mb-8 text-center">Station Crowd Prediction</h1>
 
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6">
         <div className="relative mb-6">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-
             <FaSearch className="text-orange-400" />
           </div>
           <input
@@ -158,16 +152,13 @@ const StationCrowdPrediction = () => {
             value={searchTerm}
             onChange={handleSearchChange}
             placeholder="Search for a station"
-
             className="pl-10 w-full py-3 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
           />
           {isSuggestionsVisible && filteredStations.length > 0 && (
-
             <ul className="absolute z-10 w-full mt-1 bg-white border border-orange-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
               {filteredStations.map((station) => (
                 <li
                   key={station.id || station.name}
-
                   className="px-4 py-3 hover:bg-orange-50 cursor-pointer transition-colors"
                   onClick={() => handleStationSelect(station.name)}
                 >
@@ -181,7 +172,6 @@ const StationCrowdPrediction = () => {
         <select
           value={selectedStation}
           onChange={handleStationChange}
-
           className="w-full mb-6 py-3 px-4 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
         >
           <option value="">Select a Station</option>
@@ -193,10 +183,8 @@ const StationCrowdPrediction = () => {
         </select>
 
         {selectedStation && trainNumbers.length > 0 && (
-
           <div className="mb-6 p-4 bg-orange-50 rounded-lg">
             <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
-
               <FaTrain className="text-red-600" />
               Trains from {selectedStation}
             </h2>
@@ -212,7 +200,6 @@ const StationCrowdPrediction = () => {
 
         <button
           onClick={handleFetchCrowdPrediction}
-
           className="w-full bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
         >
           <FaChartBar />
@@ -226,9 +213,7 @@ const StationCrowdPrediction = () => {
           </div>
         )}
 
-
         {crowdData.length > 0 ? (
-
           <div className="mt-4 text-center text-lg font-semibold text-red-600">
             <p>Average Crowd Percentage: {calculateAverageCrowdPercentage()}%</p>
           </div>
@@ -240,7 +225,6 @@ const StationCrowdPrediction = () => {
 
         {crowdData.length > 0 && (
           <div className="mt-8">
-
             <h2 className="text-2xl font-semibold mb-4 text-center text-red-800">
               Average Crowd Levels for {selectedStation}
             </h2>
@@ -328,6 +312,5 @@ const StationCrowdPrediction = () => {
     </div>
   );
 };
-
 
 export default StationCrowdPrediction;

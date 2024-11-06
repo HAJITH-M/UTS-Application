@@ -1,17 +1,19 @@
     import React, { useState, useEffect } from 'react';
 
-    import { FaTrain, FaTimes, FaHome, FaTicketAlt, FaInfoCircle, FaSignOutAlt } from 'react-icons/fa';
+    import { FaTrain, FaTimes, FaHome, FaTicketAlt, FaInfoCircle, FaSignOutAlt, FaSignInAlt } from 'react-icons/fa';
     import { BsThreeDots, BsThreeDotsVertical } from 'react-icons/bs';
     import { MdTrain, MdLocationOn } from 'react-icons/md';
 
     const NavBar = () => {
       const [isMenuOpen, setIsMenuOpen] = useState(false);
       const [userInitial, setUserInitial] = useState('');
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
 
       useEffect(() => {
         const email = localStorage.getItem('userEmail');
         if (email) {
           setUserInitial(email.charAt(0).toUpperCase());
+          setIsLoggedIn(true);
         }
       }, []);
 
@@ -22,6 +24,7 @@
       const handleLogout = () => {
         localStorage.removeItem('userEmail');
         setUserInitial('');
+        setIsLoggedIn(false);
         window.location.href = '/';
       };
 
@@ -57,7 +60,11 @@
                 <li><a href="/stations" className="hover:text-red-300 flex items-center" title="View stations"><MdLocationOn className="mr-1" aria-hidden="true" />Stations</a></li>
                 <li><a href="/tickets" className="hover:text-red-300 flex items-center" title="View tickets"><FaTicketAlt className="mr-1" aria-hidden="true" />Tickets</a></li>
                 <li><a href="/about" className="hover:text-red-300 flex items-center" title="About UTS"><FaInfoCircle className="mr-1" aria-hidden="true" />About</a></li>
-                <li><button onClick={handleLogout} className="hover:text-red-300 flex items-center" aria-label="Logout"><FaSignOutAlt className="mr-1" aria-hidden="true" />Logout</button></li>
+                {isLoggedIn ? (
+                  <li><button onClick={handleLogout} className="hover:text-red-300 flex items-center" aria-label="Logout"><FaSignOutAlt className="mr-1" aria-hidden="true" />Logout</button></li>
+                ) : (
+                  <li><a href="/" className="hover:text-red-300 flex items-center" aria-label="Login"><FaSignInAlt className="mr-1" aria-hidden="true" />Login</a></li>
+                )}
 
                 {userInitial && (
                   <>
