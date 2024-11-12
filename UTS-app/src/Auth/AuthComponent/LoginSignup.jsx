@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Navigate } from 'react-router-dom';
+import { backEndUrl } from './BackEndUrl';
+
+
+
 
 const LoginSignup = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,7 +20,6 @@ const LoginSignup = () => {
   if (userEmail) {
     return <Navigate to="/home" />;
   }
-
 
   const toggleForm = () => {
     setIsLogin(!isLogin);
@@ -34,15 +37,15 @@ const LoginSignup = () => {
     e.preventDefault();
     setLoading(true);
 
-    const apiUrl = 'http://localhost:5000'; // Update as needed
-    const url = `${apiUrl}/${isLogin ? 'login' : 'signup'}`;
-    const body = {
-      name: !isLogin ? name : undefined,
-      email,
-      password,
-    };
-
     try {
+      const apiUrl = await backEndUrl();
+      const url = `${apiUrl}/${isLogin ? 'login' : 'signup'}`;
+      const body = {
+        name: !isLogin ? name : undefined,
+        email,
+        password,
+      };
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -53,8 +56,8 @@ const LoginSignup = () => {
 
       const data = await response.json();
       if (response.ok) {
-        localStorage.setItem('userEmail', email); // Store email on successful login
-        window.location.href = '/home'; // This will refresh the page and redirect
+        localStorage.setItem('userEmail', email);
+        window.location.href = '/home';
       } else {
         setError(data.error || 'An error occurred');
       }

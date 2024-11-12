@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FaTrain, FaMoneyBillWave, FaEnvelope, FaClock } from 'react-icons/fa';
 import axios from 'axios';
+import { backEndUrl } from '../../Auth/AuthComponent/BackEndUrl';
 
 const BookingHistory = () => {
   const [bookings, setBookings] = useState([]);
@@ -16,7 +17,8 @@ const BookingHistory = () => {
       }
 
       try {
-        const response = await axios.get(`http://localhost:5000/booking-history?email=${encodeURIComponent(email)}`);
+        const baseUrl = await backEndUrl();
+        const response = await axios.get(`${baseUrl}/booking-history?email=${encodeURIComponent(email)}`);
         console.log('Booking History Response:', response.data);
 
         if (response.data && isMounted) {

@@ -3,6 +3,7 @@ import { FaMapMarkerAlt, FaExchangeAlt, FaTrain, FaTicketAlt, FaPrint, FaMobileA
 import { MdGpsFixed } from 'react-icons/md';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
+import { backEndUrl } from '../../Auth/AuthComponent/BackEndUrl';
 
 const NormalBooking = () => {
   const [selectedOption, setSelectedOption] = useState(null);
@@ -18,6 +19,8 @@ const NormalBooking = () => {
   const [userEmail, setUserEmail] = useState('');
   const [showWarningModal, setShowWarningModal] = useState(false);
 
+
+
   useEffect(() => {
     const email = localStorage.getItem('userEmail');
     if (email) {
@@ -28,7 +31,9 @@ const NormalBooking = () => {
   useEffect(() => {
     const fetchStations = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/stations');
+
+        const baseUrl = await backEndUrl();
+        const response = await axios.get(`${baseUrl}/stations`);
         console.log('Fetched stations:', response.data);
         setStations(response.data);
       } catch (error) {
@@ -112,7 +117,9 @@ const NormalBooking = () => {
     }
 
     try {
-      const response = await axios.get(`http://localhost:5000/next-trains?from=${departure.trainNumber}&to=${arrival.trainNumber}`);
+
+      const baseUrl = await backEndUrl();
+      const response = await axios.get(`${baseUrl}/next-trains?from=${departure.trainNumber}&to=${arrival.trainNumber}`);
       setNextTrains(response.data);
     } catch (error) {
       console.error('Error fetching next trains:', error.response ? error.response.data : error.message);
@@ -126,7 +133,9 @@ const NormalBooking = () => {
     }
   
     try {
-      const response = await axios.get(`http://localhost:5000/fare?fromTrainNumber=${departure.trainNumber}&toTrainNumber=${arrival.trainNumber}&fromStationId=${departure.stationId}&toStationId=${arrival.stationId}`);
+
+      const baseUrl = await backEndUrl();
+      const response = await axios.get(`${baseUrl}/fare?fromTrainNumber=${departure.trainNumber}&toTrainNumber=${arrival.trainNumber}&fromStationId=${departure.stationId}&toStationId=${arrival.stationId}`);
       const fare = response.data.totalFare;
   
       console.log('Fare response:', fare);
@@ -143,8 +152,8 @@ const NormalBooking = () => {
     } catch (error) {
       console.error('Error fetching fare:', error.response ? error.response.data : error.message);
     }
-  };
 
+  };
   return (
     <>
       <h1 className="mx-2 text-xl font-bold mb-4 bg-gradient-to-r from-orange-500 to-red-500 text-white p-2 rounded">

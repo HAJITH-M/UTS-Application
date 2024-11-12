@@ -8,6 +8,7 @@ import HomePage from './Pages/HomePage'
 import BookingConfirmation from './components/NormalBoooking/BookingConfirmation'
 import BookingHistory from './components/NormalBoooking/BookingHistory'
 import TrainCrowdPrediction from './components/CrowdPrediction/CrowdPrediction'
+import DataTable from './components/python/DataTable'
 
 const App = () => {
   return (
@@ -16,6 +17,8 @@ const App = () => {
         <NavBar/>
           <Routes>
             <Route path='/' element={<LoginSignup/>}/>
+            <Route path='/d' element={<DataTable/>}/>
+
             <Route path='/home' element={<ProtectedRoute><HomePage/></ProtectedRoute>}/>
             <Route path="/confirm-booking" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />      
             <Route path="/booking-history" element={<ProtectedRoute><BookingHistory /></ProtectedRoute>} />

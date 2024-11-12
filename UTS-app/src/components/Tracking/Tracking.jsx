@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // Updated import
 import { FaTicketAlt, FaHistory, FaEye, FaWallet, FaUser, FaExchangeAlt } from 'react-icons/fa';
+import { backEndUrl } from '../../Auth/AuthComponent/BackEndUrl';
 
 const Tracking = () => {
   const [activeButton, setActiveButton] = useState(null);
@@ -18,8 +19,9 @@ const Tracking = () => {
       console.error('No user email found');
       return;
     }
-  
-    const url = `http://localhost:5000/booking-history?email=${encodeURIComponent(userEmail)}`;
+    const baseUrl = await backEndUrl();
+
+    const url = `${baseUrl}/booking-history?email=${encodeURIComponent(userEmail)}`;
   
     try {
       const response = await fetch(url);

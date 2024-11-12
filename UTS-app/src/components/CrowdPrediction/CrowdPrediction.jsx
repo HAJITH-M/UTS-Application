@@ -3,6 +3,7 @@ import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { FaSearch, FaTrain, FaChartBar, FaChevronDown } from 'react-icons/fa';
 import { IoMdWarning } from 'react-icons/io';
+import { backEndUrl } from '../../Auth/AuthComponent/BackEndUrl';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -20,7 +21,9 @@ const StationCrowdPrediction = () => {
   useEffect(() => {
     const fetchStations = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/stations');
+        const baseUrl = await backEndUrl();
+
+        const response = await fetch(`${baseUrl}/api/stations`);
         if (!response.ok) throw new Error('Failed to fetch stations');
         const data = await response.json();
         setStations(data);
@@ -77,8 +80,9 @@ const StationCrowdPrediction = () => {
     try {
       const controller = new AbortController();
       const signal = controller.signal;
+      const baseUrl = await backEndUrl();
 
-      const response = await fetch(`http://localhost:5000/crowd-prediction?stationName=${formattedStationName}`, {
+      const response = await fetch(`${baseUrl}/crowd-prediction?stationName=${formattedStationName}`, {
         signal: signal,
         headers: { 'Content-Type': 'application/json' },
       });
