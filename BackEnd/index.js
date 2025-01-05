@@ -12,16 +12,14 @@ const app = express();
 const PORT = 5000;
 
 // Initialize Prisma Client for serverless environments
+// Initialize Prisma Client for serverless environments
 let prisma;
 
-if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient();
-} else {
-  if (!global.prisma) {
-    global.prisma = new PrismaClient();
-  }
-  prisma = global.prisma;
+if (!global.prisma) {
+  global.prisma = new PrismaClient();
 }
+prisma = global.prisma;
+
 
 // Middleware 
 app.use(bodyParser.json());
@@ -555,11 +553,11 @@ app.get('/crowd-prediction', async (req, res) => {
 //     console.log(`Server is running on http://localhost:${PORT}`);
 // });
 
-// module.exports = (req, res) => {  
-//   app(req, res);
-// };
+module.exports = (req, res) => {  
+  app(req, res);
+};
 
 
-module.exports.handler = serverless(app);
+// module.exports.handler = serverless(app);
 
 
