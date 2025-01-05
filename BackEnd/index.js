@@ -4,10 +4,26 @@ const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const serverless = require('serverless-http');
+
 
 const app = express();
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 const PORT = 5000;
+
+// Initialize Prisma Client for serverless environments
+let prisma;
+
+if (process.env.NODE_ENV === 'production') {
+  prisma = new PrismaClient();
+} else {
+  // Reuse the Prisma Client instance in development or serverless environments
+  if (!global.prisma) {
+    global.prisma = new PrismaClient();
+  }
+  prisma = global.prisma;
+}
+
 
 // Middleware 
 app.use(bodyParser.json());
@@ -542,8 +558,11 @@ app.get('/crowd-prediction', async (req, res) => {
 //     console.log(`Server is running on http://localhost:${PORT}`);
 // });
 
-module.exports = (req, res) => {  
-  app(req, res);
-};
+// module.exports = (req, res) => {  
+//   app(req, res);
+// };
+
+
+module.exports.handler = serverless(app);
 
 
