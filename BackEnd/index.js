@@ -23,9 +23,7 @@ prisma = global.prisma;
 
 // Middleware 
 app.use(bodyParser.json());
-app.use(cors({
-    origin: '*', // Update to your frontend's URL
-}));
+app.use(cors());
 
 // Replace this with your actual JWT secret
 const JWT_SECRET = 'your_jwt_secret';
