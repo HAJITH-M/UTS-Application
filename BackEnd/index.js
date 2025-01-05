@@ -17,13 +17,11 @@ let prisma;
 if (process.env.NODE_ENV === 'production') {
   prisma = new PrismaClient();
 } else {
-  // Reuse the Prisma Client instance in development or serverless environments
   if (!global.prisma) {
     global.prisma = new PrismaClient();
   }
   prisma = global.prisma;
 }
-
 
 // Middleware 
 app.use(bodyParser.json());
@@ -34,31 +32,30 @@ app.use(cors({
 // Replace this with your actual JWT secret
 const JWT_SECRET = 'your_jwt_secret';
 
-(async () => {
-  try {
-      await prisma.$connect();
-      console.log("Connected to the database");
-  } catch (error) {
-      console.error("Database connection error:", error);
-      process.exit(1); // Exit the application if the database connection fails
-  }
-})();
+// (async () => {
+//   try {
+//       await prisma.$connect();
+//       console.log("Connected to the database");
+//   } catch (error) {
+//       console.error("Database connection error:", error);
+//       process.exit(1); // Exit the application if the database connection fails
+//   }
+// })();
 
-// Test database connection on startup 
+// Test database connection on startup // Modify your database connection test route
 app.get('/', async (req, res) => {
   try {
-      await prisma.$connect();
-      console.log("Connected to the database");
-      res.send("Connected to the database");
+    await prisma.$connect();
+    res.status(200).json({ status: "Connected to database" });
   } catch (error) {
-      console.error("Database connection error:", error);
-      res.status(500).send("Database connection error");
-  } finally {
-      await prisma.$disconnect(); // Disconnect after the request is handled
+    console.error("Database connection error:", error);
+    res.status(500).json({ 
+      error: "Database connection error",
+      details: error.message 
+    });
   }
+  // Don't disconnect here as it might affect other routes
 });
-
-
 
 // Signup Route
 app.post('/signup', async (req, res) => {
