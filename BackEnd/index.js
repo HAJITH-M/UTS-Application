@@ -28,15 +28,6 @@ app.use(cors());
 // Replace this with your actual JWT secret
 const JWT_SECRET = 'your_jwt_secret';
 
-// (async () => {
-//   try {
-//       await prisma.$connect();
-//       console.log("Connected to the database");
-//   } catch (error) {
-//       console.error("Database connection error:", error);
-//       process.exit(1); // Exit the application if the database connection fails
-//   }
-// })();
 
 // Test database connection on startup // Modify your database connection test route
 app.get('/', async (req, res) => {
@@ -551,6 +542,8 @@ app.get('/crowd-prediction', async (req, res) => {
 //     console.log(`Server is running on http://localhost:${PORT}`);
 // });
 
+
+// Export the Express app
 module.exports = (req, res) => {  
   app(req, res);
 };
