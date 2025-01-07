@@ -3,6 +3,7 @@
     import { FaTrain, FaTimes, FaHome, FaTicketAlt, FaInfoCircle, FaSignOutAlt, FaSignInAlt } from 'react-icons/fa';
     import { BsThreeDots, BsThreeDotsVertical } from 'react-icons/bs';
     import { MdTrain, MdLocationOn } from 'react-icons/md';
+import { Link } from 'react-router-dom';
 
     const NavBar = () => {
       const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -55,11 +56,11 @@
             </div>
             <nav className={`w-full md:w-auto ${isMenuOpen ? 'block' : 'hidden'} md:block mt-4 md:mt-0 `} role="navigation" aria-label="Main navigation">
               <ul className="flex flex-col select-none md:flex-row md:space-x-4 space-y-2 md:space-y-0">
-                <li><a href="/" className="hover:text-red-300 flex items-center" title="Home page"><FaHome className="mr-1" aria-hidden="true" />Home</a></li>
-                <li><a href="/trains" className="hover:text-red-300 flex items-center" title="View trains"><MdTrain className="mr-1" aria-hidden="true" />Trains</a></li>
-                <li><a href="/stations" className="hover:text-red-300 flex items-center" title="View stations"><MdLocationOn className="mr-1" aria-hidden="true" />Stations</a></li>
-                <li><a href="/tickets" className="hover:text-red-300 flex items-center" title="View tickets"><FaTicketAlt className="mr-1" aria-hidden="true" />Tickets</a></li>
-                <li><a href="/about" className="hover:text-red-300 flex items-center" title="About UTS"><FaInfoCircle className="mr-1" aria-hidden="true" />About</a></li>
+                <li><Link to="/" className="hover:text-red-300 flex items-center" title="Home page"><FaHome className="mr-1" aria-hidden="true" />Home</Link></li>
+                <li><Link to="/trains" className="hover:text-red-300 flex items-center" title="View trains"><MdTrain className="mr-1" aria-hidden="true" />Trains</Link></li>
+                {/* <li><a href="/stations" className="hover:text-red-300 flex items-center" title="View stations"><MdLocationOn className="mr-1" aria-hidden="true" />Stations</a></li> */}
+                {/* <li><a href="/tickets" className="hover:text-red-300 flex items-center" title="View tickets"><FaTicketAlt className="mr-1" aria-hidden="true" />Tickets</a></li> */}
+                <li><Link to="/about" className="hover:text-red-300 flex items-center" title="About UTS"><FaInfoCircle className="mr-1" aria-hidden="true" />About</Link></li>
                 {isLoggedIn ? (
                   <li><button onClick={handleLogout} className="hover:text-red-300 flex items-center" aria-label="Logout"><FaSignOutAlt className="mr-1" aria-hidden="true" />Logout</button></li>
                 ) : (

@@ -43,18 +43,24 @@ const Tracking = () => {
     if (buttonType === 'Booking History') {
       fetchBookingHistory();
     }
+    if (buttonType === 'Profile') {
+      navigate('/profile');
+    }
+    if (buttonType === 'Show Ticket') {
+      navigate('/showticket');
+    }
   };
 
   return (
     <div className="bg-gray-100 p-2 pb-5">
-      <div className="max-w-3xl mx-auto">
-        <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
-          <Button icon={<FaTicketAlt />} text="Cancel Ticket" isActive={activeButton === 'Cancel Ticket'} onClick={() => handleButtonClick('Cancel Ticket')} />
+      <div className="w-[90%] mx-auto flex items-center justify-center">
+        <div className="grid grid-cols-3 lg:grid-cols-3 gap-2 ">
+          {/* <Button icon={<FaTicketAlt />} text="Cancel Ticket" isActive={activeButton === 'Cancel Ticket'} onClick={() => handleButtonClick('Cancel Ticket')} /> */}
           <Button icon={<FaHistory />} text="Booking History" isActive={activeButton === 'Booking History'} onClick={() => handleButtonClick('Booking History')} />
           <Button icon={<FaEye />} text="Show Ticket" isActive={activeButton === 'Show Ticket'} onClick={() => handleButtonClick('Show Ticket')} />
-          <Button icon={<FaWallet />} text="R-Wallet" isActive={activeButton === 'R-Wallet'} onClick={() => handleButtonClick('R-Wallet')} />
+          {/* <Button icon={<FaWallet />} text="R-Wallet" isActive={activeButton === 'R-Wallet'} onClick={() => handleButtonClick('R-Wallet')} /> */}
           <Button icon={<FaUser />} text="Profile" isActive={activeButton === 'Profile'} onClick={() => handleButtonClick('Profile')} />
-          <Button icon={<FaExchangeAlt />} text="Transactions" isActive={activeButton === 'Transactions'} onClick={() => handleButtonClick('Transactions')} />
+          {/* <Button icon={<FaExchangeAlt />} text="Transactions" isActive={activeButton === 'Transactions'} onClick={() => handleButtonClick('Transactions')} /> */}
         </div>
       </div>
     </div>
@@ -64,7 +70,7 @@ const Tracking = () => {
 const Button = ({ icon, text, isActive, onClick }) => {
   return (
     <button
-      className={`flex flex-col items-center justify-center p-2 rounded-md shadow-sm transition-all duration-200 ${
+      className={`flex flex-col items-center justify-center p-2 rounded-md shadow-sm transition-all duration-200 w-full ${
         isActive
           ? 'bg-blue-500 text-white'
           : 'bg-white text-gray-700 hover:shadow-md'

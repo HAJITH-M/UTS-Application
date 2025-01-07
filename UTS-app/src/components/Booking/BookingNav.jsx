@@ -6,11 +6,10 @@
     const [activeTab, setActiveTab] = useState(null);
 
     const tabs = [
-      { id: 'JourneyTicket', icon: FaTicketAlt, label: 'Journey Ticket', path: '/booking/journey-ticket' },
-      { id: 'QRBooking', icon: FaQrcode, label: 'QR Booking', path: '/booking/qr-booking' },
-      { id: 'QuickBooking', icon: FaBolt, label: 'Quick Booking', path: '/booking/quick-booking' },
-      { id: 'PlatformTicket', icon: FaSubway, label: 'Platform Ticket', path: '/booking/platform-ticket' },
-      { id: 'SeasonTicket', icon: FaCalendarAlt, label: 'Season Ticket', path: '/booking/season-ticket' },
+      // { id: 'JourneyTicket', icon: FaTicketAlt, label: 'Journey Ticket', path: '/booking/journey-ticket' },
+      { id: 'QuickBooking', icon: FaBolt, label: 'Quick Booking', path: '/quickbooking' },
+      { id: 'PlatformTicket', icon: FaSubway, label: 'Platform Ticket', path: '/platformticket' },
+      { id: 'SeasonTicket', icon: FaCalendarAlt, label: 'Season Ticket', path: '/seasonticket' },
       { id: 'CrowdInfo', icon: FaUsers, label: 'Crowd Info', path: '/crowd' },
     ]; 
 

@@ -12,7 +12,6 @@ const app = express();
 const PORT = 5000;
 
 // Initialize Prisma Client for serverless environments
-// Initialize Prisma Client for serverless environments
 let prisma;
 
 if (!global.prisma) {
