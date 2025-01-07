@@ -45,19 +45,43 @@ app.get('/', async (req, res) => {
 
 // Signup Route
 app.post('/signup', async (req, res) => {
-    const { name, email, password } = req.body;
+  const { name, email, password } = req.body;
 
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await prisma.user.create({
-            data: { name, email, password: hashedPassword },
-        });
-        res.status(201).json({ id: user.id, email: user.email });
-    } catch (error) {
-        console.error('Error during signup:', error);
-        res.status(400).json({ error: 'User already exists or invalid input' });
-    }
+  try {
+      // First check if user already exists
+      const existingUser = await prisma.user.findUnique({
+          where: { email },
+      });
+
+      if (existingUser) {
+          return res.status(400).json({ 
+              error: 'A user with this email already exists' 
+          });
+      }
+
+      // If no existing user, proceed with creating new user
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = await prisma.user.create({
+          data: { 
+              name, 
+              email, 
+              password: hashedPassword 
+          },
+      });
+
+      res.status(201).json({ 
+          id: user.id, 
+          email: user.email 
+      });
+
+  } catch (error) {
+      console.error('Error during signup:', error);
+      res.status(500).json({ 
+          error: 'An error occurred during signup' 
+      });
+  }
 });
+
 
 // Login Route
 app.post('/login', async (req, res) => {
