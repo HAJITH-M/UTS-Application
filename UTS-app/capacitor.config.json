@@ -1,0 +1,9 @@
+{
+  "appId": "com.utsbooking.app",
+  "appName": "UTS App",
+  "webDir": "dist",
+  "server": {
+    "url": "https://utsbooking.vercel.app",
+    "cleartext": true
+  }
+}

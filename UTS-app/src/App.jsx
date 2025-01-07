@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import NavBar from './components/NavBar/NavBar'
 import Footer from './components/Footer/Footer'
 import LoginSignup from './Auth/AuthComponent/LoginSignup'
@@ -16,8 +16,43 @@ import PlatformTicketPage from './Pages/PlatformTicketPage/PlatformTicketPage'
 import QuickBooking from './Pages/QuickBooking/QuickBooking'
 import ProfilePage from './Pages/ProfilePage/ProfilePage'
 import TicketPage from './Pages/TicketPage/TicketPage'
+import { App as CapacitorApp } from '@capacitor/app';
+import { Toast } from '@capacitor/toast';
+
 
 const App = () => {
+
+  useEffect(() => {
+    let lastTimeBackPress = 0;
+    
+    const handleBackButton = async () => {
+      if (window.location.pathname === '/') {
+        const currentTime = new Date().getTime();
+        
+        if (currentTime - lastTimeBackPress < 2000) {
+          await CapacitorApp.exitApp();
+        } else {
+          lastTimeBackPress = currentTime;
+          // Show toast instead of alert
+          await Toast.show({
+            text: 'Press back again to exit',
+            duration: 'short',
+            position: 'bottom'
+          });
+        }
+      } else {
+        window.history.back();
+      }
+    };
+  
+    const backButtonListener = CapacitorApp.addListener('backButton', handleBackButton);
+    return () => {
+      if (backButtonListener) {
+        backButtonListener.remove();
+      }
+    };
+  }, []);
+
   return (
     <>
      <Router>
