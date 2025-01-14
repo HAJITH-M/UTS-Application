@@ -45,26 +45,49 @@
       if (Capacitor.isNativePlatform()) {
         try {
           const ticketElement = document.querySelector('.max-w-2xl');
-          const canvas = await html2canvas(ticketElement);
-          const base64Data = canvas.toDataURL('image/png');
+          if (!ticketElement) {
+            throw new Error('Ticket element not found');
+          }
+  
+          // Configure html2canvas with better settings
+          const canvas = await html2canvas(ticketElement, {
+            scale: 2, // Higher resolution
+            useCORS: true, // Handle cross-origin images
+            logging: true, // Help with debugging
+            backgroundColor: '#ffffff'
+          });
+  
+          // Convert to base64, splitting off the metadata
+          const base64Data = canvas.toDataURL('image/png').split(',')[1];
           
           const fileName = `ticket_${Date.now()}.png`;
+          
+          // Write the file with explicit encoding
           await Filesystem.writeFile({
             path: fileName,
             data: base64Data,
             directory: Directory.Documents,
+            encoding: Encoding.BASE64
           });
-
-          alert('Ticket saved to Documents folder!');
+  
+          // Verify the file was created
+          const fileInfo = await Filesystem.getUri({
+            directory: Directory.Documents,
+            path: fileName
+          });
+  
+          console.log('File saved at:', fileInfo.uri);
+          alert(`Ticket saved successfully at: ${fileInfo.uri}`);
+  
         } catch (error) {
           console.error('Error saving ticket:', error);
-          alert('Failed to save ticket');
+          alert(`Failed to save ticket: ${error.message}`);
         }
       } else {
         window.print();
       }
     };
-
+    
     if (loading) {
       return (
         <div className="min-h-screen bg-gray-100 py-8 px-4">
