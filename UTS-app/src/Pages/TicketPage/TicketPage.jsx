@@ -3,7 +3,8 @@
   import axios from 'axios';
   import { backEndUrl } from '../../Auth/AuthComponent/BackEndUrl';
   import { Capacitor } from '@capacitor/core';
-  import { Filesystem, Directory } from '@capacitor/filesystem';
+
+  import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
   import html2canvas from 'html2canvas';
 
   const TicketPage = () => {
@@ -49,39 +50,61 @@
             throw new Error('Ticket element not found');
           }
   
-          // Configure html2canvas with better settings
+
           const canvas = await html2canvas(ticketElement, {
-            scale: 2, // Higher resolution
-            useCORS: true, // Handle cross-origin images
-            logging: true, // Help with debugging
-            backgroundColor: '#ffffff'
+
+
+
+
+            scale: 2,
+            useCORS: true,
+            logging: true,
+            backgroundColor: '#ffffff',
+            windowWidth: ticketElement.scrollWidth,
+            windowHeight: ticketElement.scrollHeight
           });
   
-          // Convert to base64, splitting off the metadata
+
           const base64Data = canvas.toDataURL('image/png').split(',')[1];
-          
+
           const fileName = `ticket_${Date.now()}.png`;
-          
-          // Write the file with explicit encoding
+
+
+  
+          try {
+            await Filesystem.mkdir({
+              path: 'tickets',
+              directory: Directory.Documents,
+              recursive: true
+            });
+          } catch (error) {
+            console.log('Directory might already exist:', error);
+          }
+  
           await Filesystem.writeFile({
-            path: fileName,
+
+            path: `tickets/${fileName}`,
             data: base64Data,
             directory: Directory.Documents,
-            encoding: Encoding.BASE64
+
+            encoding: Encoding.UTF8
           });
   
-          // Verify the file was created
+
           const fileInfo = await Filesystem.getUri({
             directory: Directory.Documents,
-            path: fileName
+
+            path: `tickets/${fileName}`
           });
   
           console.log('File saved at:', fileInfo.uri);
-          alert(`Ticket saved successfully at: ${fileInfo.uri}`);
+
+          alert('Ticket downloaded successfully!');
   
         } catch (error) {
           console.error('Error saving ticket:', error);
-          alert(`Failed to save ticket: ${error.message}`);
+
+          alert('Failed to download ticket. Please try again.');
         }
       } else {
         window.print();
