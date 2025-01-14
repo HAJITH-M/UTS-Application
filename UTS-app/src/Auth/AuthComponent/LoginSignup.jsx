@@ -2,10 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Navigate } from 'react-router-dom';
 import { backEndUrl } from './BackEndUrl';
-
-
-
-
 const LoginSignup = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);

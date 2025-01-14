@@ -2,6 +2,9 @@
   import { FaTicketAlt, FaCalendarAlt, FaMapMarkerAlt, FaClock, FaUser, FaTrain, FaMoneyBillWave, FaEnvelope } from 'react-icons/fa';
   import axios from 'axios';
   import { backEndUrl } from '../../Auth/AuthComponent/BackEndUrl';
+  import { Capacitor } from '@capacitor/core';
+  import { Filesystem, Directory } from '@capacitor/filesystem';
+  import html2canvas from 'html2canvas';
 
   const TicketPage = () => {
     const [ticket, setTicket] = useState(null);
@@ -38,9 +41,28 @@
       };
     }, []);
 
-    const handleDownload = () => {
-      // Implementation for ticket download functionality
-      window.print();
+    const handleDownload = async () => {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const ticketElement = document.querySelector('.max-w-2xl');
+          const canvas = await html2canvas(ticketElement);
+          const base64Data = canvas.toDataURL('image/png');
+          
+          const fileName = `ticket_${Date.now()}.png`;
+          await Filesystem.writeFile({
+            path: fileName,
+            data: base64Data,
+            directory: Directory.Documents,
+          });
+
+          alert('Ticket saved to Documents folder!');
+        } catch (error) {
+          console.error('Error saving ticket:', error);
+          alert('Failed to save ticket');
+        }
+      } else {
+        window.print();
+      }
     };
 
     if (loading) {

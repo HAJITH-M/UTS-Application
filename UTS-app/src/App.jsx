@@ -26,22 +26,17 @@ const App = () => {
     let lastTimeBackPress = 0;
     
     const handleBackButton = async () => {
-      if (window.location.pathname === '/') {
-        const currentTime = new Date().getTime();
-        
-        if (currentTime - lastTimeBackPress < 2000) {
-          await CapacitorApp.exitApp();
-        } else {
-          lastTimeBackPress = currentTime;
-          // Show toast instead of alert
-          await Toast.show({
-            text: 'Press back again to exit',
-            duration: 'short',
-            position: 'bottom'
-          });
-        }
+      const currentTime = new Date().getTime();
+      
+      if (currentTime - lastTimeBackPress < 2000) {
+        await CapacitorApp.exitApp();
       } else {
-        window.history.back();
+        lastTimeBackPress = currentTime;
+        await Toast.show({
+          text: 'Press back again to exit',
+          duration: 'short',
+          position: 'bottom'
+        });
       }
     };
   
