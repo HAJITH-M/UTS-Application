@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import NavBar from './components/NavBar/NavBar'
 import Footer from './components/Footer/Footer'
 import LoginSignup from './Auth/AuthComponent/LoginSignup'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'
 import ProtectedRoute from './Auth/ProtectedRoute'
 import HomePage from './Pages/HomePage/HomePage'
 import BookingConfirmation from './components/NormalBoooking/BookingConfirmation'
@@ -19,8 +19,8 @@ import TicketPage from './Pages/TicketPage/TicketPage'
 import { App as CapacitorApp } from '@capacitor/app';
 import { Toast } from '@capacitor/toast';
 
-
-const App = () => {
+const AppContent = () => {
+  const navigate = useNavigate();
 
   useEffect(() => {
     let lastTimeBackPress = 0;
@@ -28,15 +28,19 @@ const App = () => {
     const handleBackButton = async () => {
       const currentTime = new Date().getTime();
       
-      if (currentTime - lastTimeBackPress < 2000) {
-        await CapacitorApp.exitApp();
+      if (window.location.pathname === '/home') {
+        if (currentTime - lastTimeBackPress < 2000) {
+          await CapacitorApp.exitApp();
+        } else {
+          lastTimeBackPress = currentTime;
+          await Toast.show({
+            text: 'Press back again to exit',
+            duration: 'short',
+            position: 'bottom'
+          });
+        }
       } else {
-        lastTimeBackPress = currentTime;
-        await Toast.show({
-          text: 'Press back again to exit',
-          duration: 'short',
-          position: 'bottom'
-        });
+        navigate(-1);
       }
     };
   
@@ -46,33 +50,37 @@ const App = () => {
         backButtonListener.remove();
       }
     };
-  }, []);
+  }, [navigate]);
 
   return (
     <>
-     <Router>
-        <NavBar/>
-          <Routes>
-            <Route path='/' element={<LoginSignup/>}/>
-            <Route path='/d' element={<DataTable/>}/>
-            <Route path='/home' element={<ProtectedRoute><HomePage/></ProtectedRoute>}/>
-            <Route path="/confirm-booking" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />      
-            <Route path="/booking-history" element={<ProtectedRoute><BookingHistory /></ProtectedRoute>} />
-            <Route path="/trains" element={<ProtectedRoute><TrainsPage /></ProtectedRoute>} />
-            <Route path="/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
-            <Route path="/seasonticket" element={<ProtectedRoute><SeasonTicketPage /></ProtectedRoute>} />
-            <Route path="/platformticket" element={<ProtectedRoute><PlatformTicketPage /></ProtectedRoute>} />
-            <Route path="/quickbooking" element={<ProtectedRoute><QuickBooking /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-            <Route path="/showticket" element={<ProtectedRoute><TicketPage /></ProtectedRoute>} />
-
-            <Route path='/crowd' element={<TrainCrowdPrediction/>} />
-          </Routes>
-        <Footer/>
-      </Router>  
+      <NavBar/>
+      <Routes>
+        <Route path='/' element={<LoginSignup/>}/>
+        <Route path='/d' element={<DataTable/>}/>
+        <Route path='/home' element={<ProtectedRoute><HomePage/></ProtectedRoute>}/>
+        <Route path="/confirm-booking" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />      
+        <Route path="/booking-history" element={<ProtectedRoute><BookingHistory /></ProtectedRoute>} />
+        <Route path="/trains" element={<ProtectedRoute><TrainsPage /></ProtectedRoute>} />
+        <Route path="/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
+        <Route path="/seasonticket" element={<ProtectedRoute><SeasonTicketPage /></ProtectedRoute>} />
+        <Route path="/platformticket" element={<ProtectedRoute><PlatformTicketPage /></ProtectedRoute>} />
+        <Route path="/quickbooking" element={<ProtectedRoute><QuickBooking /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/showticket" element={<ProtectedRoute><TicketPage /></ProtectedRoute>} />
+        <Route path='/crowd' element={<TrainCrowdPrediction/>} />
+      </Routes>
+      <Footer/>
     </>
-   
-  )
-}
+  );
+};
+
+const App = () => {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+};
 
 export default App
