@@ -127,7 +127,7 @@ const BookingConfirmation = () => {
       </div>
       <div className="bg-gradient-to-r from-orange-100 to-red-50 p-4 rounded-lg mb-4">
         <h2 className="font-semibold text-orange-600">Total Fare:</h2>
-        <p className="text-red-600">${fare}</p>
+        <p className="text-red-600">₹{fare}</p>
       </div>
 
       {/* Booking button */}
